@@ -47,7 +47,6 @@ Keys: arrows select a pad, 1–8 set its output, Space plays, Delete clears, Ent
 
 - This is an unofficial tool, not affiliated with or endorsed by MKSREC Electronics Limited.
 - The `.mks` and `.sp12` formats were worked out from example files rather than published specifications. Keep backups of anything important.
-- Opened from claude.ai, the page saves the project inside a `.zip`; unzip it before copying it to the card. From this site or from disk it saves the `.mks` directly.
 
 ## Licence
 
