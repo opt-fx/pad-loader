@@ -209,7 +209,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </details>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 18">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 20">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -608,7 +608,50 @@ const SP12 = (() => {
   }
   return { parse, parseHFE, hfeImage, toHFE, encodeHFE };
 })();
+// ---- AIFF / AIFF-C → WAV, for browsers whose decoders don't read AIFF (Chrome, Edge, Firefox) ----
+// Handles uncompressed AIFF (8/16/24/32-bit) and AIFF-C 'NONE', 'twos', 'sowt' (little-endian), 'fl32'/'FL32', 'fl64'/'FL64'.
+// Returns a WAV file as a Uint8Array, or null if the data is not AIFF. Throws on AIFF it cannot read.
+const AIFF = (() => {
+  const str = (u8, o) => String.fromCharCode(u8[o], u8[o + 1], u8[o + 2], u8[o + 3]);
+  const ext80 = (dv, o) => {                       // IEEE 754 80-bit extended, as AIFF stores the sample rate
+    const se = dv.getUint16(o), hi = dv.getUint32(o + 2), lo = dv.getUint32(o + 6);
+    if (!se && !hi && !lo) return 0;
+    const v = (hi * 2 ** 32 + lo) * 2 ** ((se & 0x7FFF) - 16383 - 63);
+    return se & 0x8000 ? -v : v;
+  };
+  function toWav(buf) {
+    const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    if (u8.length < 12 || str(u8, 0) !== 'FORM' || !['AIFF', 'AIFC'].includes(str(u8, 8))) return null;
+    let comm = null, ssnd = null;
+    for (let o = 12; o + 8 <= u8.length;) {
+      const id = str(u8, o), n = dv.getUint32(o + 4);
+      if (id === 'COMM') comm = o + 8; else if (id === 'SSND') ssnd = { at: o + 16 + dv.getUint32(o + 8), end: Math.min(o + 8 + n, u8.length) };
+      o += 8 + n + (n & 1);
+    }
+    if (comm == null || !ssnd) throw new Error('AIFF file without COMM or SSND chunk');
+    const ch = dv.getInt16(comm), frames = dv.getUint32(comm + 2), bits = dv.getInt16(comm + 6), rate = Math.round(ext80(dv, comm + 8));
+    const comp = str(u8, 8) === 'AIFC' ? str(u8, comm + 18) : 'NONE';
+    const float = /^(fl32|FL32|fl64|FL64)$/.test(comp), little = comp === 'sowt';
+    if (!float && !['NONE', 'twos', 'sowt'].includes(comp)) throw new Error(`Compressed AIFF-C ('${comp.trim()}') is not supported; export it as WAV or plain AIFF`);
+    const inBytes = float ? (/64/.test(comp) ? 8 : 4) : Math.ceil(bits / 8);
+    const outBytes = float ? 4 : inBytes, count = Math.min(frames * ch, Math.floor((ssnd.end - ssnd.at) / inBytes));
+    const out = new Uint8Array(44 + count * outBytes), w = new DataView(out.buffer);
+    const tag = (o, t) => [...t].forEach((c, k) => { out[o + k] = c.charCodeAt(0); });
+    tag(0, 'RIFF'); w.setUint32(4, 36 + count * outBytes, true); tag(8, 'WAVE'); tag(12, 'fmt ');
+    w.setUint32(16, 16, true); w.setUint16(20, float ? 3 : 1, true); w.setUint16(22, ch, true); w.setUint32(24, rate, true);
+    w.setUint32(28, rate * ch * outBytes, true); w.setUint16(32, ch * outBytes, true); w.setUint16(34, outBytes * 8, true);
+    tag(36, 'data'); w.setUint32(40, count * outBytes, true);
+    for (let k = 0, src = ssnd.at, dst = 44; k < count; k++, src += inBytes, dst += outBytes) {
+      if (float) w.setFloat32(dst, inBytes === 8 ? dv.getFloat64(src, little) : dv.getFloat32(src, little), true);
+      else if (inBytes === 1) out[dst] = (u8[src] + 128) & 255;                           // AIFF 8-bit is signed, WAV unsigned
+      else for (let b = 0; b < inBytes; b++) out[dst + b] = u8[little ? src + b : src + inBytes - 1 - b];
+    }
+    return out;
+  }
+  return { toWav };
+})();
 
+if (typeof module !== 'undefined') module.exports = { MKS, SP12, AIFF };
 
 </script>
 <script>
@@ -810,7 +853,9 @@ async function saveProject() {
 // ---------- audio import ----------
 async function decodeTo26k(file) {
   const ctx = new OfflineAudioContext(1, 1, RATE);      // decodes and resamples straight to 26040 Hz
-  const ab = await ctx.decodeAudioData(await file.arrayBuffer());
+  let data = await file.arrayBuffer();
+  const wav = AIFF.toWav(data); if (wav) data = wav.buffer;     // most browsers can't decode AIFF themselves
+  const ab = await ctx.decodeAudioData(data);
   const ch = ab.getChannelData(0);                      // left channel only, as the sampler does
   const pcm = new Int16Array(ch.length);
   for (let k = 0; k < ch.length; k++) { const v = Math.max(-1, Math.min(1, ch[k])); pcm[k] = v < 0 ? Math.round(v * 32768) : Math.round(v * 32767); }
@@ -829,9 +874,10 @@ async function importFiles(files, start) {
   if (start + files.length > 64) { log(`Only ${64 - start} pads from ${M.padLabel(start)} onward — extra files skipped`, true); files = files.slice(0, 64 - start); }
   document.body.classList.add('busy');
   const results = [];
-  for (const f of files) { try { results.push({ f, pcm: await decodeTo26k(f) }); } catch (e) { results.push({ f, err: true }); } }
+  for (const f of files) { try { results.push({ f, pcm: await decodeTo26k(f) }); } catch (e) { results.push({ f, err: true, why: e && /AIFF/.test(e.message || '') ? e.message : '' }); } }
   document.body.classList.remove('busy');
   const good = results.filter(r => !r.err);
+  for (const r of results) if (r.err && r.why) log(`${r.f.name}: ${r.why}`, true);
   if (!good.length) { log('Could not read ' + (files.length > 1 ? 'those files' : files[0].name) + ' as audio', true); return; }
   snapshot();
   let i = start, long = 0;

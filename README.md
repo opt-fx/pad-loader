@@ -16,7 +16,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 ## Quick start
 
-1. Open the app's page, or download `index.html` and open it from disk, in Chrome, Edge or Firefox.
+1. Open the app's page, or download `index.html` and open it from disk, in a current version of Chrome, Edge, Firefox or Safari.
 2. Drop audio files onto a pad. Several files fill the pads that follow, in name order.
 3. Set each pad's output if you need to (see Outputs).
 4. Type a file name and press **Save .mks**.
@@ -24,7 +24,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 ## Loading sounds
 
-- **Audio files.** WAV, AIFF, MP3, FLAC and OGG. Audio is converted the way the sampler converts WAVs: left channel only, resampled to 26,040 Hz. Each sound is named from the first six characters of its file name; click the name to change it.
+- **Audio files.** WAV, AIFF, MP3, FLAC and OGG. The tool reads AIFF itself (8- to 32-bit, and uncompressed or floating-point AIFF-C), because most browsers can't; compressed AIFF-C needs exporting as WAV or plain AIFF first. The other formats use the browser's own decoder. Audio is converted the way the sampler converts WAVs: left channel only, resampled to 26,040 Hz. Each sound is named from the first six characters of its file name; click the name to change it.
 - **Conversion.** The sampler's import modes are available: clean, 12b, 8b, 8b ul, 6b and 6b ul. Set the mode for new sounds in the toolbar, or change it per pad. The original audio is kept, so you can switch modes and listen to the difference. 12b d and gleam are not reproduced; load the WAV on the sampler for those.
 - **Length.** The memory bar shows how much of the sampler's 832 seconds is used. Sounds longer than the 13 seconds the sampler records are marked.
 
