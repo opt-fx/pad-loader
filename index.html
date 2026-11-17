@@ -209,7 +209,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </details>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>MKSREC 1 Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial tool, not affiliated with MKSREC Electronics Limited</span><span class="ver" title="Build 10">v0.1</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>MKSREC 1 Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial tool, not affiliated with MKSREC Electronics Limited</span><span class="ver" title="Build 16">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -446,12 +446,6 @@ const MKS = (() => {
            nameOf, lengthOf, channelOf, isEmpty, triggerDelayOf, setTriggerDelay, FILTER_MODES, MAX_VOICES, f1ModeOf, f2ModeOf, setF1Mode, setF2Mode, setVoices, copyPadSettings, setClassicPitch, setDecayMode, setName, setPcm, setIdentity, emptySound, makeSound };
 })();
 
-// ---- Rossum SP-1200 .sp12 reader (reverse-engineered from three example files) ----
-// Sound names at 0x9114: 32 × 6 chars (high bit set), order D1..D8, C1..C8, B1..B8, A1..A8.
-// Sound records at 0x9262: 32 × 10 bytes, same order:
-//   +0 bank<<3 | output channel   +1 0x80 | memory page   +2 u16 LE start offset within the page
-//   +4 u16 LE 0x10009 - length (0xFFFD = empty pad)
-// Sample memory from 0x94E0: 65536-sample pages, 12-bit offset binary, 2 samples per 3 bytes: [hi1][lo1<<4 | lo2][hi2].
 const SP12 = (() => {
   // E-mu SP-1200 sound data, from a Rossum .sp12 project or an original floppy image (.hfe).
   // Sound table: 32 names (6 chars, high bit set) then 32 ten-byte records, both in the order D1–D8, C1–C8, B1–B8, A1–A8.
@@ -478,7 +472,7 @@ const SP12 = (() => {
       }
       let name = '';
       for (let c = 0; c < 6; c++) name += String.fromCharCode(u8[names + k * 6 + c] & 0x7F);
-      sounds.push({ slot: (3 - (k >> 3)) * 8 + (k & 7), channel: b0 & 7, decay: b0 >> 7, pitch: b1 >> 3, tune: (b1 >> 3) - 16, name: name.trim(), pcm });
+      sounds.push({ slot: (3 - (k >> 3)) * 8 + (k & 7), channel: b0 & 7, decay: b0 >> 7, pitch: b1 >> 3, name: name.trim(), pcm });
     }
     return sounds;
   }
