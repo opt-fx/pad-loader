@@ -1,6 +1,8 @@
-# MKSREC 1 Pad Loader
+# Pad Loader
 
-A browser tool for the MKSREC 1 sampler. It does three things:
+**For the MKSREC 1 sampler.** An unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited.
+
+Pad Loader is a browser tool for the MKSREC 1. It does three things:
 
 - **Loads samples onto the sampler's 64 pads** and saves a fresh `.mks` project ready to copy to the card. Apart from the sounds, their outputs, voices and filter modes, and a few project settings, the project matches a brand-new one from the sampler, so tuning, loops, envelopes and the rest stay at the defaults for you to set on the hardware.
 - **Imports SP-1200 kits onto pads**, from a Rossum `.sp12` project or an original SP-1200 floppy image (`.hfe`), with their names, outputs, tuning and decay.
@@ -8,7 +10,7 @@ A browser tool for the MKSREC 1 sampler. It does three things:
 
 The whole app is one HTML file and runs in the browser with no install. Nothing is uploaded anywhere: your sounds stay on your computer. Made by OPT.
 
-**Use it now: https://opt-fx.github.io/mksrec1-pad-loader/**
+**Use it now: https://opt-fx.github.io/pad-loader/**
 
 **Status: version 1.0.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
 
@@ -75,7 +77,7 @@ Keys: arrows select a pad, 1–8 set its output, Space plays, Delete clears, Ent
 
 ## Notes
 
-- This is an unofficial tool, not affiliated with or endorsed by MKSREC Electronics Limited.
+- Pad Loader is an unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited, used here only to say which sampler the tool works with.
 - The `.mks`, `.sp12` and `.hfe` formats were worked out from example files rather than published specifications. Keep backups of anything important.
 
 ## Licence
