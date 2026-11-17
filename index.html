@@ -81,6 +81,12 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .outsel{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
 .outsel button{padding:6px 0;font-family:var(--mono);font-size:13px}
 .outsel button.on{background:var(--accent);border-color:var(--accent);color:#061a2e;font-weight:600}
+.seg{display:grid;gap:4px}
+.seg button{padding:5px 0;font-family:var(--mono);font-size:12.5px}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#061a2e;font-weight:600}
+.seg.v{grid-template-columns:repeat(6,1fr)} .seg.f{grid-template-columns:repeat(4,1fr)}
+.pad .pm{white-space:nowrap;font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:.02em}
+.pad.empty .pm{color:#3f6a96}
 .convsel{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:13px;cursor:pointer}
 .convsel:disabled{opacity:.5;cursor:default}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px}
@@ -89,6 +95,13 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .outs{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:16px}
 .outs .head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
 .outs .head .legend{margin-right:auto}
+.proj .opts{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.proj .chk{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;background:#191b1e;border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.proj .chk input{accent-color:var(--accent);margin:0}
+.proj .field input[type=number]{width:62px}
+.proj .hint{margin-top:10px}
+.pad.pull{border-style:dashed;border-color:var(--accent2)}
+.pad.pull .top span:first-child::after{content:' ⇤';color:var(--accent2)}
 .ocols{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px}
 @media (max-width:760px){.ocols{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .ocol{background:#191b1e;border:1px solid var(--line);border-radius:6px;padding:7px 6px 6px;min-height:150px;display:flex;flex-direction:column;gap:4px;transition:background .12s}
@@ -102,9 +115,14 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .chip i{font-style:normal;color:var(--lcddim)}
 .chip span{font-family:var(--lcdf);font-size:17px;line-height:1;color:var(--lcdtext);white-space:pre;overflow:hidden}
 .chip.sel{border-color:var(--accent)}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#2c2f35;border:1px solid var(--line);border-radius:8px;padding:10px 16px;max-width:min(680px,92vw);opacity:0;transition:.2s;pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.4);z-index:5}
-.toast.show{opacity:1;transform:translateX(-50%)}
-.toast.err{border-color:var(--danger)}
+.logbox{margin-top:12px}
+details.hint{margin-top:10px} details.hint summary{cursor:pointer;color:var(--mute);font-size:12.5px} details.hint[open] summary{margin-bottom:6px}
+.logbox .sect button{font-size:11.5px;padding:2px 8px}
+.log{height:118px;overflow:auto;background:#141619;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:11.5px;line-height:1.4;color:var(--mute)}
+.log div{white-space:pre-wrap;padding:1px 0}
+.log div+div{border-top:1px solid #1f2226}
+.log .bad{color:#ff9d9d}
+.log .new{color:var(--text)}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:6}
 .modal.show{display:flex}
 .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;max-width:460px}
@@ -122,9 +140,10 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
 <body>
 <div class="chassis">
   <header>
-    <div class="brand"><h1>MKSREC 1 Pad Loader</h1><span>samples → a fresh .mks project</span></div>
+    <div class="brand"><h1 title="Samples and SP-1200 kits onto pads in a fresh .mks project, and Rossum .sp12 projects to .hfe floppy images">MKSREC 1 Pad Loader</h1></div>
     <button class="key" id="newBtn" title="Start again with 64 empty pads">New</button>
-    <button class="key" id="spBtn" title="Add the sounds from a Rossum SP-1200 .sp12 project to the first free banks (or drop the file on a pad to choose the bank)">Import SP-1200…</button>
+    <button class="key" id="spBtn" title="Add the sounds from an SP-1200 kit, a Rossum .sp12 project or an original floppy image (.hfe), to the first free banks (or drop the file on a pad to choose the bank)">Import SP-1200…</button>
+    <button class="key" id="toHfeBtn" title="Convert a Rossum SP-1200 .sp12 project into an SP-1200 floppy image (.hfe). Load it in the sampler's Disk mode to import the whole kit: sounds, settings, sequences and songs. Does not change the project here">.sp12 → .hfe…</button>
     <div class="field" title="Sample conversion for audio you load from now on (Disk mode key 1 on the sampler)"><label>Conversion</label><select id="convAll"></select></div>
     <button class="key" id="undoBtn" disabled title="Undo (Ctrl/Cmd+Z)">Undo</button>
     <div class="field" title="File name for the saved project"><input id="fname" spellcheck="false" maxlength="40" value="project"><em>.mks</em></div>
@@ -142,6 +161,19 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
           <button class="key sm ghost" id="defBtn" title="Firmware default: odd pads to output 7, even pads to output 8">Defaults</button></div>
         <div class="ocols" id="ocols"></div>
       </section>
+      <section class="outs proj">
+        <div class="head"><span class="legend">Project settings — written into every project you save, and remembered in this browser</span></div>
+        <div class="opts">
+          <label class="chk" title="Setup 17: every pad's choke group set to G-- (none). A brand-new project from the sampler puts odd pads in choke group 7 and even pads in group 8, so any odd pad cuts off any other odd pad"><input type="checkbox" id="chokeOff"> Choke groups off</label>
+          <span class="legend">New pads:</span>
+          <div class="field" title="Voices (Setup 17) that every pad of a new project starts with. At 1 (the firmware default) a pad cuts off its own previous hit, as on an SP-1200. Up to 6 per pad; the sampler plays 16 voices in all"><label>Voices</label><select id="defVoices"></select></div>
+          <div class="field" title="Filter 1 mode (Setup 31) that every pad of a new project starts with. The Ext mode cutoff sliders only act on sounds with Filter 1 on"><label>Filter 1</label><select id="defF1"></select></div>
+          <div class="field" title="Filter 2 mode (Setup 32) that every pad of a new project starts with"><label>Filter 2</label><select id="defF2"></select></div>
+          <button class="key sm ghost" id="applyDefBtn" title="Set voices and both filter modes on all 64 pads to the new-pad values">Apply to all pads</button>
+          <div class="field" title="Setup 42 Trigger Delay, Pull, in units of about 0.15 ms (0 = off). Pull on one spare pad makes the sampler delay every other sound by that amount while its MIDI clock stays on the grid, so gear following that clock lines up with it"><label>Sync compensation: Pull</label><input id="pullAmt" type="number" min="0" max="4095" step="1"><em id="pullMs"></em></div>
+          <div class="field" title="The spare pad that holds the Pull. Leave it empty: anything on it plays ahead of the other sounds"><label>on pad</label><select id="pullPad"></select></div>
+        </div>
+      </section>
     </div>
     <aside class="side" id="side">
       <div class="sect"><span>Selected pad</span><b id="selLabel">A1</b></div>
@@ -152,6 +184,15 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       <div class="sect"><span>Output</span><span id="outNote"></span></div>
       <div class="outsel" id="outsel"></div>
       <div class="gap"></div>
+      <div class="sect"><span>Voices</span><span id="voiceNote"></span></div>
+      <div class="seg v" id="voicesel"></div>
+      <div class="gap"></div>
+      <div class="sect"><span>Filter 1</span><span>Ext cutoff acts on this one</span></div>
+      <div class="seg f" id="f1sel"></div>
+      <div class="gap"></div>
+      <div class="sect"><span>Filter 2</span></div>
+      <div class="seg f" id="f2sel"></div>
+      <div class="gap"></div>
       <div class="sect"><span>Conversion</span><span id="convNote"></span></div>
       <select class="convsel" id="convPad"></select>
       <div class="btns">
@@ -160,19 +201,20 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
         <button class="key" id="wavBtn">Export WAV</button>
         <button class="key ghost" id="clearBtn">Clear pad</button>
       </div>
-      <div class="hint">
-        Drop audio onto a pad; several files fill the pads that follow. Drop an <b>.sp12</b> on a pad to put the kit in that bank onwards.<br>
-        Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their outputs when moved; new audio takes the pad's output.<br>
+      <section class="logbox"><div class="sect"><span>Activity</span><button class="key sm ghost" id="logClear" title="Clear the activity list">Clear</button></div><div id="log" class="log"></div></section>
+      <details class="hint"><summary>Tips</summary>
+        Drop audio onto a pad; several files fill the pads that follow. Drop an SP-1200 <b>.sp12</b> or <b>.hfe</b> on a pad to put the kit in that bank onwards.<br>
+        Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their output, filters and voices when moved; new audio takes the pad's.<br>
         <kbd>←→↑↓</kbd> select · <kbd>1</kbd>–<kbd>8</kbd> output · <kbd>Space</kbd> play · <kbd>Del</kbd> clear · <kbd>Enter</kbd> rename
-      </div>
+      </details>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>MKSREC 1 Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial tool, not affiliated with MKSREC Electronics Limited</span><span class="ver" title="Build 4">v0.1</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>MKSREC 1 Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial tool, not affiliated with MKSREC Electronics Limited</span><span class="ver" title="Build 10">v0.1</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
-<input type="file" id="spFile" accept=".sp12" class="hidden">
+<input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
+<input type="file" id="toHfeFile" accept=".sp12" class="hidden">
 <input type="file" id="audioFile" accept="audio/*,.wav,.aif,.aiff,.mp3,.flac,.ogg" multiple class="hidden">
-<div class="toast" id="toast"></div>
 <div class="modal" id="modal"><div class="box"><p id="modalMsg"></p><div class="row"><button class="key ghost" id="modalNo">Cancel</button><button class="key" id="modalYes">OK</button></div></div></div>
 
 <script>
@@ -193,11 +235,27 @@ const MKS = (() => {
   function u32(u8, o) { return (u8[o] | u8[o + 1] << 8 | u8[o + 2] << 16 | u8[o + 3] << 24) >>> 0; }
   function setU32(u8, o, v) { u8[o] = v & 255; u8[o + 1] = v >> 8 & 255; u8[o + 2] = v >> 16 & 255; u8[o + 3] = v >>> 24; }
 
-  function makeSound(header, pcm) { return { header: new Uint8Array(header), pcm: pcm || new Int16Array(0) }; }
+  // voices lives in the mix table, not the header, so it is carried on the sound object and written at build time.
+  function makeSound(header, pcm, voices) { return { header: new Uint8Array(header), pcm: pcm || new Int16Array(0), voices: voices || 1 }; }
   const nameOf = s => ascii(s.header, 4, 10);
   const lengthOf = s => u32(s.header, 0x1C);
   const channelOf = s => s.header[0x30];          // 0..7 = outputs 1..8
   const isEmpty = s => lengthOf(s) === 0;
+  // Filter modes (Setups 31 and 32): one byte each in the sound header. 0 = off, 1 = LP, 2 = HP, 3 = BP.
+  const F1_MODE = 0x42, F2_MODE = 0x62, FILTER_MODES = ['Off', 'LP', 'HP', 'BP'], MAX_VOICES = 6;
+  const f1ModeOf = s => s.header[F1_MODE], f2ModeOf = s => s.header[F2_MODE];
+  function setF1Mode(s, m) { s.header[F1_MODE] = m & 3; }
+  function setF2Mode(s, m) { s.header[F2_MODE] = m & 3; }
+  // Classic Pitch (0x34, 16 = as sampled) and Decay mode (0xE0): the bytes the sampler sets from an SP-1200 pad's
+  // tuning and decay flag when it converts a floppy image.
+  function setClassicPitch(s, v) { s.header[0x34] = Math.max(0, Math.min(31, v | 0)); }
+  function setDecayMode(s, on) { s.header[0xE0] = on ? 1 : 0; }
+  function setVoices(s, v) { s.voices = Math.max(1, Math.min(MAX_VOICES, v | 0)); }
+  // Settings that belong with a pad: output, filter modes and voices. Kept when a pad's audio is replaced or cleared.
+  function copyPadSettings(dst, src) {
+    dst.header[0x30] = src.header[0x30]; dst.header[F1_MODE] = src.header[F1_MODE]; dst.header[F2_MODE] = src.header[F2_MODE];
+    dst.voices = src.voices || 1;
+  }
 
   function setName(s, name) {
     const n = (name || '').replace(/[^\x20-\x7e]/g, '_').slice(0, 6).padEnd(6, ' ');
@@ -210,10 +268,11 @@ const MKS = (() => {
     s.header[0x13] = i >> 3; s.header[0x14] = i;
   }
   const defaultChannel = i => 6 + (i & 1);         // firmware default: odd pads output 7, even pads output 8
-  function emptySound(i, channel) {
+  function emptySound(i, channel, like) {
     const s = makeSound(hex2u8(DEFAULT_HDR_HEX));
     setIdentity(s, i); setName(s, padLabel(i)); setPcm(s, new Int16Array(0));
-    s.header[0x30] = channel ?? defaultChannel(i);
+    if (like) copyPadSettings(s, like);
+    s.header[0x30] = channel ?? (like ? like.header[0x30] : defaultChannel(i));
     return s;
   }
 
@@ -225,28 +284,44 @@ const MKS = (() => {
 
   function parse(buf) {
     const u8 = new Uint8Array(buf);
+    // The first sound record is the first 0x1211 tag at bank 0, slot 0 whose records chain through all 64 pads.
+    // 0x20 is the number of samples stored; 0x1C is the playback end, which can be shorter.
+    const chains = pos => {
+      for (let i = 0; i < PADS; i++) {
+        if (pos + HDR > u8.length || u32(u8, pos) !== SOUND_TAG || u8[pos + 0x14] !== i) return false;
+        pos += HDR + u32(u8, pos + 0x20) * 2;
+      }
+      return pos <= u8.length;
+    };
     let first = -1;
-    for (let o = 0; o + 14 < u8.length; o++) {
-      if (u8[o] === 0x11 && u8[o + 1] === 0x12 && u8[o + 2] === 0 && u8[o + 3] === 0 &&
-          u8[o + 11] === 65 && u8[o + 12] === 49 && u8[o + 13] === 32) { first = o; break; }
-    }
+    for (let o = 0; o + HDR < u8.length; o++)
+      if (u8[o] === 0x11 && u8[o + 1] === 0x12 && u8[o + 2] === 0 && u8[o + 3] === 0 && u8[o + 0x13] === 0 && u8[o + 0x14] === 0 && chains(o)) { first = o; break; }
     if (first < 0) throw new Error('No sound records found — is this an MKSREC 1 .mks file?');
     const sounds = [];
     let pos = first;
     for (let i = 0; i < PADS; i++) {
       if (u32(u8, pos) !== SOUND_TAG) throw new Error(`Unexpected data at sound ${padLabel(i)}`);
-      const n = u32(u8, pos + 0x1C);
+      const n = u32(u8, pos + 0x20);
       if (pos + HDR + n * 2 > u8.length) throw new Error(`Sound ${padLabel(i)} runs past end of file`);
       sounds.push(makeSound(u8.slice(pos, pos + HDR), new Int16Array(u8.slice(pos + HDR, pos + HDR + n * 2).buffer)));
       pos += HDR + n * 2;
     }
-    const prefix = u8.slice(0, first);
-    return { prefix, sounds, trailer: u8.slice(pos), mix: findMix(prefix) };
+    const prefix = u8.slice(0, first), mix = findMix(prefix);
+    if (mix >= 0) sounds.forEach((s, i) => { s.voices = prefix[mix + 0x244 + i] || 1; });
+    return { prefix, sounds, trailer: u8.slice(pos), mix };
   }
 
-  function newProject() {
+  // defaults: { voices, f1, f2 } for every pad (firmware defaults: 1 voice, both filters off).
+  function newProject(defaults = {}) {
     const prefix = b64(TEMPLATE.prefix);
-    return { prefix, trailer: b64(TEMPLATE.trailer), sounds: Array.from({ length: PADS }, (_, i) => emptySound(i)), mix: findMix(prefix) };
+    const sounds = Array.from({ length: PADS }, (_, i) => {
+      const s = emptySound(i);
+      if (defaults.voices) setVoices(s, defaults.voices);
+      if (defaults.f1) setF1Mode(s, defaults.f1);
+      if (defaults.f2) setF2Mode(s, defaults.f2);
+      return s;
+    });
+    return { prefix, trailer: b64(TEMPLATE.trailer), sounds, mix: findMix(prefix) };
   }
 
   function setChannel(p, i, ch) {
@@ -254,9 +329,30 @@ const MKS = (() => {
     if (p.mix >= 0) { p.prefix[p.mix + 0x104 + i] = ch; p.prefix[p.mix + 0x1C4 + i] = ch; }
   }
 
-  function build(p, fileName) {
+  // Current mix (first 0x1213 record): output tables at +0x104 and +0x1C4, choke tables at +0x144 and +0x204,
+  // one byte per slot. Choke group n is stored as n - 1; 0xFF is no group (G-- in Setup 17).
+  // Voices (Setup 17, V##): one byte per slot at +0x244, stored as the count (firmware default 1, at most 6 per pad).
+  const CHOKE_NONE = 0xFF;
+  // Trigger delay (Setup 42): signed 32-bit at sound header 0xC8, ~0.15 ms per unit. Positive = Push, negative = Pull.
+  const TRIG_DELAY = 0xC8;
+  const triggerDelayOf = s => u32(s.header, TRIG_DELAY) | 0;
+  function setTriggerDelay(s, units) { setU32(s.header, TRIG_DELAY, Math.max(-4095, Math.min(4095, units | 0)) >>> 0); }
+
+  // opts.chokeOff: every pad's choke group set to none.  opts.pullPad / opts.pull: Pull amount on one pad (0 = none),
+  // which makes the sampler delay every other sound by that amount while its MIDI clock stays on the grid.
+  function build(p, fileName, opts = {}) {
     // Keep the mix tables in step with the sound headers, and record the file path the way the firmware does.
-    p.sounds.forEach((s, i) => { if (p.mix >= 0) { p.prefix[p.mix + 0x104 + i] = channelOf(s); p.prefix[p.mix + 0x1C4 + i] = channelOf(s); } });
+    p.sounds.forEach((s, i) => {
+      if (p.mix >= 0) {
+        p.prefix[p.mix + 0x104 + i] = channelOf(s); p.prefix[p.mix + 0x1C4 + i] = channelOf(s);
+        p.prefix[p.mix + 0x244 + i] = Math.max(1, Math.min(MAX_VOICES, s.voices | 0));
+        if ('chokeOff' in opts) {            // off: no group; on: the firmware default, one group per default output (7 / 8)
+          const g = opts.chokeOff ? CHOKE_NONE : defaultChannel(i);
+          p.prefix[p.mix + 0x144 + i] = g; p.prefix[p.mix + 0x204 + i] = g;
+        }
+      }
+      if ('pull' in opts) setTriggerDelay(s, i === opts.pullPad ? -opts.pull : 0);
+    });
     if (fileName) {
       const path = ('/Songs/' + fileName).slice(0, 16);
       for (let k = 0; k < 17; k++) p.prefix[8 + k] = k < path.length ? path.charCodeAt(k) & 0x7f : 0;
@@ -347,7 +443,7 @@ const MKS = (() => {
   }
 
   return { RATE, PADS, HDR, TOTAL_FRAMES, padLabel, parse, build, newProject, setChannel, defaultChannel, convert, CONVERSIONS, wav, zip, crc32,
-           nameOf, lengthOf, channelOf, isEmpty, setName, setPcm, setIdentity, emptySound, makeSound };
+           nameOf, lengthOf, channelOf, isEmpty, triggerDelayOf, setTriggerDelay, FILTER_MODES, MAX_VOICES, f1ModeOf, f2ModeOf, setF1Mode, setF2Mode, setVoices, copyPadSettings, setClassicPitch, setDecayMode, setName, setPcm, setIdentity, emptySound, makeSound };
 })();
 
 // ---- Rossum SP-1200 .sp12 reader (reverse-engineered from three example files) ----
@@ -357,30 +453,166 @@ const MKS = (() => {
 //   +4 u16 LE 0x10009 - length (0xFFFD = empty pad)
 // Sample memory from 0x94E0: 65536-sample pages, 12-bit offset binary, 2 samples per 3 bytes: [hi1][lo1<<4 | lo2][hi2].
 const SP12 = (() => {
-  const NAMES = 0x9114, RECS = 0x9262, MEM = 0x94E0, PAGE = 65536;
-  function parse(buf) {
-    const u8 = new Uint8Array(buf);
-    if (u8.length < MEM + 3) throw new Error('This file is too small to be an SP-1200 project');
-    const total = Math.floor((u8.length - MEM) / 3) * 2;
-    const sample = idx => { const t = MEM + (idx >> 1) * 3;
-      return idx & 1 ? ((u8[t + 2] << 4) | (u8[t + 1] & 15)) - 2048 : ((u8[t] << 4) | (u8[t + 1] >> 4)) - 2048; };
+  // E-mu SP-1200 sound data, from a Rossum .sp12 project or an original floppy image (.hfe).
+  // Sound table: 32 names (6 chars, high bit set) then 32 ten-byte records, both in the order D1–D8, C1–C8, B1–B8, A1–A8.
+  //   rec +0: bits 0–2 output channel, bit 7 decay mode (bits 3–6 unknown)
+  //   rec +1: bits 0–2 memory page, bits 3–7 tuning (16 = as sampled)
+  //   rec +2: u16 start within the page, in samples        rec +4: u16, 0xFFFF − length; 0xFFFD = empty pad
+  // Sample memory: 65536-sample pages of 12-bit offset binary, two samples in three bytes:
+  //   A high 8 bits, B high 8 bits, (B low 4 bits << 4) | A low 4 bits.
+  const PAGE = 65536, PAGE_BYTES = PAGE * 3 / 2;
+  function readKit(u8, names, recs, pageAt) {
     const sounds = [];
     for (let k = 0; k < 32; k++) {
-      const r = RECS + k * 10, b0 = u8[r], b1 = u8[r + 1];
-      const v = u8[r + 4] | u8[r + 5] << 8;
-      if (v === 0xFFFD || !(b1 & 0x80)) continue;
-      const start = (b1 & 0x7F) * PAGE + (u8[r + 2] | u8[r + 3] << 8);
-      const n = Math.min(0x10009 - v, total - start);
-      if (start >= total || n <= 0) continue;
+      const r = recs + k * 10, b0 = u8[r], b1 = u8[r + 1], v = u8[r + 4] | u8[r + 5] << 8;
+      if (v === 0xFFFD) continue;
+      const base = pageAt(b1 & 7); if (base < 0) continue;              // page not stored in this file
+      const start = u8[r + 2] | u8[r + 3] << 8, n = Math.min(0xFFFF - v, PAGE - start);
+      if (n <= 0) continue;
       const pcm = new Int16Array(n);
-      for (let i = 0; i < n; i++) pcm[i] = sample(start + i) * 16;
+      for (let i = 0; i < n; i++) {
+        const j = start + i, t = base + (j >> 1) * 3;
+        if (t + 2 >= u8.length) break;
+        const x = j & 1 ? (u8[t + 1] << 4) | (u8[t + 2] >> 4) : (u8[t] << 4) | (u8[t + 2] & 15);
+        pcm[i] = (x - 2048) * 16;
+      }
       let name = '';
-      for (let c = 0; c < 6; c++) name += String.fromCharCode(u8[NAMES + k * 6 + c] & 0x7F);
-      sounds.push({ slot: (3 - (b0 >> 3)) * 8 + (k & 7), channel: b0 & 7, name: name.trim(), pcm });
+      for (let c = 0; c < 6; c++) name += String.fromCharCode(u8[names + k * 6 + c] & 0x7F);
+      sounds.push({ slot: (3 - (k >> 3)) * 8 + (k & 7), channel: b0 & 7, decay: b0 >> 7, pitch: b1 >> 3, tune: (b1 >> 3) - 16, name: name.trim(), pcm });
     }
     return sounds;
   }
-  return { parse };
+  // Rossum .sp12: names at 0x9114, records at 0x9262, eight pages of sample memory from 0x94E2.
+  function parse(buf) {
+    const u8 = new Uint8Array(buf), MEM = 0x94E2;
+    if (u8.length < MEM + 3) throw new Error('This file is too small to be an SP-1200 project');
+    return readKit(u8, 0x9114, 0x9262, p => MEM + p * PAGE_BYTES < u8.length ? MEM + p * PAGE_BYTES : -1);
+  }
+
+  // ---- SP-1200 floppy image (.hfe: HxC HFE v1, E-mu FM) ----
+  // Each track side holds a header block (block number = 2 × track + side) and a 3584-byte data block, each after the
+  // sync word 5F 69. HFE stores bit cells LSB first at twice the FM rate; one cell in four is a data bit. Data bytes
+  // are bit-reversed. Joined in block order the 160 blocks make the disk image. Block 23 holds the sound table; the
+  // stored memory pages 0, 1, 6 and 7 start at blocks 24, 52, 80 and 108, and only the first 3552 bytes of each block
+  // are sample data.
+  const BLOCK = 3584, BLOCK_DATA = 3552, DISK_PAGES = [0, 1, 6, 7];
+  function hfeImage(buf) {
+    const d = new Uint8Array(buf), txt = String.fromCharCode(...d.subarray(0, 8));
+    if (txt !== 'HXCPICFE') throw new Error('Not an HFE floppy image');
+    const tracks = d[9], tlo = (d[18] | d[19] << 8) * 512, blocks = [];
+    for (let t = 0; t < tracks; t++) {
+      const off = (d[tlo + 4 * t] | d[tlo + 4 * t + 1] << 8) * 512, len = d[tlo + 4 * t + 2] | d[tlo + 4 * t + 3] << 8;
+      for (let side = 0; side < 2; side++) {
+        const raw = new Uint8Array(len >> 1);                           // sides interleave in 256-byte halves of 512-byte blocks
+        for (let i = 0; i < raw.length; i++) raw[i] = d[off + ((i >> 8) << 9) + (side << 8) + (i & 255)];
+        const cell = i => (raw[i >> 3] >> (i & 7)) & 1, ncell = raw.length * 8;
+        let found = null;
+        for (let ph = 0; ph < 4 && !found; ph++) {                      // find the cell phase that carries the data bits
+          const bit = i => cell(ph + 4 * i), nbits = (ncell - ph) >> 2, syncs = [];
+          for (let i = 0, w = 0; i < nbits; i++) { w = ((w << 1) | bit(i)) & 0xFFFF; if (w === 0x5F69) syncs.push(i + 1); }
+          if (syncs.length >= 2) found = { bit, syncs };
+        }
+        if (!found) throw new Error(`No data found on track ${t}, side ${side}`);
+        const byteAt = p => { let v = 0; for (let k = 0; k < 8; k++) v |= found.bit(p + k) << k; return v; };   // bit-reversed
+        const num = byteAt(found.syncs[0]), dpos = found.syncs.find(x => x > found.syncs[0] + 32);
+        if (dpos == null) throw new Error(`No data block on track ${t}, side ${side}`);
+        const blk = new Uint8Array(BLOCK);
+        for (let k = 0; k < BLOCK; k++) blk[k] = byteAt(dpos + 8 * k);
+        blocks[num] = blk;
+      }
+    }
+    const img = new Uint8Array(blocks.length * BLOCK);
+    blocks.forEach((b, i) => { if (b) img.set(b, i * BLOCK); });
+    return img;
+  }
+  function parseHFE(buf) {
+    const img = hfeImage(buf);
+    if (img.length < 136 * BLOCK) throw new Error('This floppy image is too short to hold an SP-1200 disk');
+    // One buffer for the reader: the sound table (names, then records at +0x14E), then the sample stream made of
+    // the first 3552 bytes of every block.
+    const TABLE = 0x14E + 32 * 10, nblk = img.length / BLOCK, u8 = new Uint8Array(TABLE + nblk * BLOCK_DATA);
+    u8.set(img.subarray(23 * BLOCK, 23 * BLOCK + TABLE));
+    for (let b = 0; b < nblk; b++) u8.set(img.subarray(b * BLOCK, b * BLOCK + BLOCK_DATA), TABLE + b * BLOCK_DATA);
+    return readKit(u8, 0, 0x14E, p => { const k = DISK_PAGES.indexOf(p); return k < 0 ? -1 : TABLE + (24 + 28 * k) * BLOCK_DATA; });
+  }
+
+  // ---- Rossum .sp12 → SP-1200 floppy image (.hfe), for the sampler's own full import ----
+  // The disk has no operating system: the sampler imports sounds, sequences, songs and settings without it.
+  // .sp12 0x0000–0x9113 (sequences, songs, settings) → image 0xA7F0, a straight copy (its first 16 bytes are filler).
+  // .sp12 0x9114–0x94E1 (sound tables, memory counters) → image 0x14200 (block 23).
+  // Pages 0, 1, 6, 7 → blocks 24, 52, 80, 108: block j of a page holds page bytes j × 3552 … + 3584 (32 overlap).
+  const SP12_SIZE = 824546, TABLES = 0x9114, MEM = 0x94E2;
+  const COUNTER = [0x9258, 0x925A, 0x9254, 0x9256, 0x9110, 0x9112, 0x925C, 0x925E];   // end of use, per page
+  function crc16(bytes) {                     // CRC-16, polynomial 0x8005, initial value 0, MSB first
+    let c = 0;
+    for (const b of bytes) { c ^= b << 8; for (let k = 0; k < 8; k++) c = ((c << 1) ^ (c & 0x8000 ? 0x8005 : 0)) & 0xFFFF; }
+    return c;
+  }
+  const rev8 = b => { let r = 0; for (let k = 0; k < 8; k++) r |= ((b >> k) & 1) << (7 - k); return r; };
+  // One track side, 125,000 bit cells: the clock in every fourth cell (offset 1), the data bit three cells later.
+  function sideCells(block, num) {
+    const stream = [];
+    const put = (v, n = 1) => { for (let i = 0; i < n; i++) stream.push(v); };
+    const field = bytes => { bytes.forEach(b => stream.push(b)); const c = crc16(bytes); stream.push(c >> 8, c & 255); };
+    put(0xFF, 20); put(0, 4); stream.push(0x5F, 0x69); field([rev8(num)]);
+    put(0, 1); put(0xFF, 8); put(0, 4); stream.push(0x5F, 0x69); field(Array.from(block, rev8)); put(0, 2);
+    const out = new Uint8Array(15625).fill(0xAA);   // 0xAA: clock and data both 1 (the gap after the sector)
+    stream.forEach((b, i) => {
+      for (let k = 0; k < 8; k++) if (!((b >> (7 - k)) & 1)) { const cell = (i * 8 + k) * 4 + 3; out[cell >> 3] &= ~(1 << (cell & 7)); }
+    });
+    return out;
+  }
+  function encodeHFE(img) {
+    const stride = 62 * 512, out = new Uint8Array(1024 + 80 * stride).fill(0xAA);
+    out.fill(0, 0, 512); out.fill(0xFF, 512, 1024);
+    out.set([...'HXCPICFE'].map(c => c.charCodeAt(0)));
+    out[8] = 0; out[9] = 80; out[10] = 2; out[11] = 3; out[12] = 312 & 255; out[13] = 312 >> 8; out[14] = out[15] = 0;
+    out[16] = 0x0B; out[17] = 1; out[18] = 1; out[19] = 0; out.fill(0xFF, 20, 512);
+    for (let t = 0; t < 80; t++) {
+      const base = 1024 + t * stride;
+      out[512 + 4 * t] = (base / 512) & 255; out[513 + 4 * t] = (base / 512) >> 8; out[514 + 4 * t] = 31250 & 255; out[515 + 4 * t] = 31250 >> 8;
+      for (let side = 0; side < 2; side++) {
+        const n = 2 * t + side, cells = sideCells(img.subarray(n * BLOCK, (n + 1) * BLOCK), n);
+        for (let i = 0; i < 15625; i++) out[base + ((i >> 8) << 9) + (side << 8) + (i & 255)] = cells[i];
+      }
+    }
+    return out;
+  }
+  // Returns { hfe, moved: [[from, to], …], sounds }. Throws if the kit needs more memory pages than a floppy holds.
+  function toHFE(buf) {
+    const s = new Uint8Array(buf).slice();
+    if (s.length !== SP12_SIZE) throw new Error('This is not a Rossum SP-1200 .sp12 project (wrong size)');
+    const rec = k => 0x9262 + k * 10, used = new Set();
+    let sounds = 0;
+    for (let k = 0; k < 32; k++) if ((s[rec(k) + 4] | s[rec(k) + 5] << 8) !== 0xFFFD) { used.add(s[rec(k) + 1] & 7); sounds++; }
+    // Sounds in the Rossum-only pages (2–5) move to floppy pages the kit leaves free.
+    const extra = [...used].filter(p => !DISK_PAGES.includes(p)).sort(), free = DISK_PAGES.filter(p => !used.has(p));
+    if (extra.length > free.length) {
+      // Sound time, counting memory shared by several pads once.
+      const regions = new Set();
+      for (let k = 0; k < 32; k++) { const v = s[rec(k) + 4] | s[rec(k) + 5] << 8; if (v !== 0xFFFD) regions.add(`${s[rec(k) + 1] & 7}:${s[rec(k) + 2] | s[rec(k) + 3] << 8}:${0xFFFF - v}`); }
+      const secs = [...regions].reduce((a, r) => a + +r.split(':')[2], 0) / 26040;
+      throw new Error(`This kit holds ${secs.toFixed(1)} s of sound across ${used.size} of the Rossum's 8 memory pages, and an SP-1200 floppy holds 4 (about 10 s). `
+        + `To load it on the MKSREC, use Import SP-1200… and save a .mks: that keeps every sound, with its output, tuning and decay, but not the kit's sequences. `
+        + `To make a floppy, remove sounds on the Rossum until it fits`);
+    }
+    const moved = extra.map((p, i) => [p, free[i]]);
+    for (const [from, to] of moved) {
+      s.copyWithin(MEM + to * PAGE_BYTES, MEM + from * PAGE_BYTES, MEM + (from + 1) * PAGE_BYTES);
+      s[COUNTER[to]] = s[COUNTER[from]]; s[COUNTER[to] + 1] = s[COUNTER[from] + 1]; s[COUNTER[from]] = s[COUNTER[from] + 1] = 0;
+      for (let k = 0; k < 32; k++)
+        if ((s[rec(k) + 4] | s[rec(k) + 5] << 8) !== 0xFFFD && (s[rec(k) + 1] & 7) === from) s[rec(k) + 1] = (s[rec(k) + 1] & 0xF8) | to;
+    }
+    const img = new Uint8Array(160 * BLOCK);
+    img.fill(0xAA, 0xA7F0, 0xA7F0 + 16); img.set(s.subarray(16, TABLES), 0xA7F0 + 16);
+    img.set(s.subarray(TABLES, MEM), 23 * BLOCK);
+    DISK_PAGES.forEach((p, k) => {
+      const page = s.subarray(MEM + p * PAGE_BYTES, MEM + (p + 1) * PAGE_BYTES);
+      for (let j = 0; j < 28; j++) img.set(page.subarray(j * BLOCK_DATA, j * BLOCK_DATA + BLOCK), (24 + 28 * k + j) * BLOCK);
+    });
+    return { hfe: encodeHFE(img), moved, sounds };
+  }
+  return { parse, parseHFE, hfeImage, toHFE, encodeHFE };
 })();
 
 
@@ -395,13 +627,22 @@ const WAVE = '#ffdf3a', WAVE_DIM = '#e2c02c';
 let project, sel = 0, undoStack = [], dirty = false, convDefault = 'clean';
 let actx = null, playing = null;
 let extra = [];   // per pad: clean source audio, its conversion mode, and where it came from
+const SETTINGS_KEY = 'mksrec1-pad-loader.settings';
+let settings = { chokeOff: true, voices: 1, f1: 0, f2: 0, pull: 14, pullPad: 63 };
+try { const j = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); if (j) settings = { ...settings, ...j }; } catch (e) {}
+function storeSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} }
+const pullOn = () => settings.pull > 0;
 
 // ---------- helpers ----------
 const fmtS = n => (n / RATE).toFixed(n / RATE < 10 ? 3 : 2) + ' s';
 const bankRange = (a, b) => a === b ? `bank ${BANKS[a]}` : `banks ${BANKS[a]}–${BANKS[b]}`;
-function toast(msg, err) {
-  const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = 'toast', err ? 6000 : 3400);
+// Activity list: newest at the bottom; the latest line is highlighted, errors in red.
+function log(msg, err) {
+  const box = $('log');
+  box.querySelectorAll('.new').forEach(d => d.classList.remove('new'));
+  const d = document.createElement('div'); d.className = err ? 'bad' : 'new'; d.textContent = msg;
+  box.append(d); box.scrollTop = box.scrollHeight;
+  while (box.childElementCount > 300) box.firstChild.remove();
 }
 function ask(msg, yes = 'OK') {
   return new Promise(res => {
@@ -411,15 +652,15 @@ function ask(msg, yes = 'OK') {
   });
 }
 function snapshot() {
-  undoStack.push({ sounds: project.sounds.map(s => ({ header: s.header.slice(), pcm: s.pcm })), extra: extra.map(e => ({ ...e })) });
+  undoStack.push({ sounds: project.sounds.map(s => ({ header: s.header.slice(), pcm: s.pcm, voices: s.voices })), extra: extra.map(e => ({ ...e })) });
   if (undoStack.length > 60) undoStack.shift();
   $('undoBtn').disabled = false; dirty = true;
 }
 function undo() {
   if (!undoStack.length) return;
   const u = undoStack.pop();
-  project.sounds = u.sounds.map(s => M.makeSound(s.header, s.pcm)); extra = u.extra;
-  $('undoBtn').disabled = !undoStack.length; renderAll(); toast('Undone');
+  project.sounds = u.sounds.map(s => M.makeSound(s.header, s.pcm, s.voices)); extra = u.extra;
+  $('undoBtn').disabled = !undoStack.length; renderAll(); log('Undone');
 }
 function audio() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx; }
 const loaded = i => project.sounds[i].pcm.length > 0;
@@ -448,7 +689,7 @@ function buildGrid() {
     for (let c = 0; c < 8; c++) {
       const i = r * 8 + c, el = document.createElement('div');
       el.className = 'pad'; el.dataset.i = i; el.draggable = true;
-      el.innerHTML = `<div class="top"><span>${M.padLabel(i)}</span><span class="dur"></span><span class="ob"></span></div><div class="nm"></div><canvas></canvas><span class="warn hidden" title="Longer than 13 s">▲</span>`;
+      el.innerHTML = `<div class="top"><span>${M.padLabel(i)}</span><span class="dur"></span><span class="pm"></span><span class="ob"></span></div><div class="nm"></div><canvas></canvas><span class="warn hidden" title="Longer than 13 s">▲</span>`;
       grid.appendChild(el);
     }
   }
@@ -458,6 +699,13 @@ function buildGrid() {
   const os = $('outsel'); os.innerHTML = '';
   for (let k = 0; k < 8; k++) os.insertAdjacentHTML('beforeend', `<button class="key" data-o="${k}" title="Output ${k + 1}: ${OUT_NOTES[k]}">${k + 1}</button>`);
   $('convAll').innerHTML = Object.entries(M.CONVERSIONS).map(([k, v]) => `<option value="${k}" title="${v.desc}">${v.label}</option>`).join('');
+  const FM = M.FILTER_MODES, FT = ['Filter off', 'Low-pass', 'High-pass', 'Band-pass'];
+  $('voicesel').innerHTML = Array.from({ length: M.MAX_VOICES }, (_, k) => `<button class="key" data-v="${k + 1}" title="${k + 1} voice${k ? 's' : ''}${k ? '' : ': a new hit cuts off the last one'}">${k + 1}</button>`).join('');
+  for (const id of ['f1sel', 'f2sel']) $(id).innerHTML = FM.map((m, k) => `<button class="key" data-m="${k}" title="${FT[k]}">${m}</button>`).join('');
+  $('defVoices').innerHTML = Array.from({ length: M.MAX_VOICES }, (_, k) => `<option value="${k + 1}">${k + 1}</option>`).join('');
+  for (const id of ['defF1', 'defF2']) $(id).innerHTML = FM.map((m, k) => `<option value="${k}">${m}</option>`).join('');
+  $('pullPad').innerHTML = Array.from({ length: 64 }, (_, i) => `<option value="${i}">${M.padLabel(i)}</option>`).join('');
+  renderSettings();
   $('convPad').innerHTML = Object.entries(M.CONVERSIONS).map(([k, v]) => `<option value="${k}">${v.label} — ${v.desc}</option>`).join('');
 }
 function renderPad(i) {
@@ -465,9 +713,21 @@ function renderPad(i) {
   el.classList.toggle('empty', !n); el.classList.toggle('sel', i === sel);
   el.querySelector('.nm').textContent = n ? M.nameOf(s) : '------';
   el.querySelector('.dur').textContent = n ? (n / RATE).toFixed(2) : '';
+  const f1 = M.f1ModeOf(s), f2 = M.f2ModeOf(s), pm = el.querySelector('.pm');
+  pm.textContent = [f1 ? M.FILTER_MODES[f1] : '', f2 ? '²' + M.FILTER_MODES[f2] : '', s.voices > 1 ? '×' + s.voices : ''].filter(Boolean).join('');
+  pm.title = `Filter 1 ${M.FILTER_MODES[f1]} · Filter 2 ${M.FILTER_MODES[f2]} · ${s.voices} voice${s.voices > 1 ? 's' : ''}`;
   const ob = el.querySelector('.ob'); ob.textContent = ch + 1; ob.title = `Output ${ch + 1}: ${OUT_NOTES[ch]}`;
   el.querySelector('.warn').classList.toggle('hidden', n <= MAX_REC);
+  const pp = pullOn() && i === settings.pullPad; el.classList.toggle('pull', pp);
+  el.title = pp ? `${M.padLabel(i)} holds the sync-compensation Pull (${settings.pull}); leave it empty` : '';
   drawWave(el.querySelector('canvas'), s.pcm, WAVE_DIM);
+}
+function renderSettings() {
+  $('chokeOff').checked = settings.chokeOff;
+  $('defVoices').value = settings.voices; $('defF1').value = settings.f1; $('defF2').value = settings.f2;
+  if (document.activeElement !== $('pullAmt')) $('pullAmt').value = settings.pull;
+  $('pullPad').value = settings.pullPad; $('pullPad').disabled = !pullOn();
+  $('pullMs').textContent = pullOn() ? `≈ ${(settings.pull * 0.15).toFixed(1)} ms` : 'off';
 }
 function renderBanks() {
   for (let b = 0; b < 8; b++) {
@@ -498,6 +758,10 @@ function renderSide() {
       + (n > MAX_REC ? `<span style="color:var(--accent2)">Note</span><b style="color:var(--accent2)">Longer than the 13 s the sampler records; untested</b>` : '')
     : `<span>Pad</span><b>empty — drop audio here or Load audio…</b>`;
   document.querySelectorAll('#outsel button').forEach(b => b.classList.toggle('on', +b.dataset.o === ch));
+  document.querySelectorAll('#voicesel button').forEach(b => b.classList.toggle('on', +b.dataset.v === s.voices));
+  document.querySelectorAll('#f1sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === M.f1ModeOf(s)));
+  document.querySelectorAll('#f2sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === M.f2ModeOf(s)));
+  $('voiceNote').textContent = s.voices === 1 ? 'new hit cuts the last' : `${s.voices} can overlap`;
   $('outNote').textContent = `${ch + 1} · ${OUT_NOTES[ch]}`;
   const cp = $('convPad'); cp.disabled = !(n && ex && ex.src); cp.value = ex && ex.conv || 'clean';
   $('convNote').textContent = !n ? '' : ex && ex.src ? '' : 'source not kept';
@@ -520,7 +784,7 @@ function select(i) {
 
 // ---------- project ----------
 function newProject() {
-  project = M.newProject(); extra = Array.from({ length: 64 }, () => ({}));
+  project = M.newProject({ voices: settings.voices, f1: settings.f1, f2: settings.f2 }); extra = Array.from({ length: 64 }, () => ({}));
   undoStack = []; dirty = false; sel = 0; $('undoBtn').disabled = true;
 }
 async function saveFile(name, u8, label) {
@@ -530,21 +794,23 @@ async function saveFile(name, u8, label) {
     if (dl) {
       try {
         await dl.save({ filename: name.replace(/\.[^.]+$/, '') + '.zip', data: M.zip([{ name, data: u8 }]) });
-        toast(`Saved ${label} inside a .zip — unzip it before copying to the card`); return true;
-      } catch (e) { if (e && e.code === 'declined') return false; toast('Save failed: ' + (e && (e.message || e.code)), true); return false; }
+        log(`Saved ${label} inside a .zip — unzip it before copying to the card`); return true;
+      } catch (e) { if (e && e.code === 'declined') return false; log('Save failed: ' + (e && (e.message || e.code)), true); return false; }
     }
   }
   const url = URL.createObjectURL(new Blob([u8], { type: 'application/octet-stream' }));
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
-  toast(`Saved ${name}`); return true;
+  log(`Saved ${name}`); return true;
 }
 async function saveProject() {
   const used = project.sounds.reduce((a, s) => a + s.pcm.length, 0);
   if (!used && !(await ask('No pads have sounds yet. Save an empty project anyway?', 'Save'))) return;
   if (used > M.TOTAL_FRAMES && !(await ask(`The sounds total ${(used / RATE).toFixed(1)} s, more than the sampler's 832 s of sound memory, so the project may not load. Save anyway?`, 'Save anyway'))) return;
+  if (pullOn() && loaded(settings.pullPad) && !(await ask(`${M.padLabel(settings.pullPad)} holds the sync-compensation Pull, so its sound will play about ${(settings.pull * 0.15).toFixed(1)} ms ahead of the others. Save anyway?`, 'Save anyway'))) return;
   const name = ($('fname').value.trim() || 'project').replace(/[\\/:*?"<>|]/g, '_') + '.mks';
-  if (await saveFile(name, M.build(project, name), name)) dirty = false;
+  const opts = { chokeOff: settings.chokeOff, pull: settings.pull, pullPad: settings.pullPad };
+  if (await saveFile(name, M.build(project, name, opts), name)) dirty = false;
 }
 
 // ---------- audio import ----------
@@ -558,21 +824,21 @@ async function decodeTo26k(file) {
 }
 const nameFromFile = fn => fn.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _\-]/g, '').slice(0, 6) || 'sample';
 function placeSound(i, pcm, name, conv, from) {
-  const s = M.emptySound(i, M.channelOf(project.sounds[i]));   // default settings; the pad keeps its output
+  const s = M.emptySound(i, null, project.sounds[i]);   // default settings; the pad keeps its output, filters and voices
   M.setPcm(s, M.convert(pcm, conv)); M.setName(s, name);
   project.sounds[i] = s; extra[i] = { src: pcm, conv, from };
 }
 async function importFiles(files, start) {
-  files = [...files].filter(f => !/\.(mks|sp12)$/i.test(f.name));
+  files = [...files].filter(f => !/\.(mks|sp12|hfe)$/i.test(f.name));
   if (!files.length) return;
   files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-  if (start + files.length > 64) { toast(`Only ${64 - start} pads from ${M.padLabel(start)} onward — extra files skipped`, true); files = files.slice(0, 64 - start); }
+  if (start + files.length > 64) { log(`Only ${64 - start} pads from ${M.padLabel(start)} onward — extra files skipped`, true); files = files.slice(0, 64 - start); }
   document.body.classList.add('busy');
   const results = [];
   for (const f of files) { try { results.push({ f, pcm: await decodeTo26k(f) }); } catch (e) { results.push({ f, err: true }); } }
   document.body.classList.remove('busy');
   const good = results.filter(r => !r.err);
-  if (!good.length) { toast('Could not read ' + (files.length > 1 ? 'those files' : files[0].name) + ' as audio', true); return; }
+  if (!good.length) { log('Could not read ' + (files.length > 1 ? 'those files' : files[0].name) + ' as audio', true); return; }
   snapshot();
   let i = start, long = 0;
   for (const r of results) {
@@ -583,7 +849,7 @@ async function importFiles(files, start) {
   }
   const bad = results.length - good.length;
   select(start); renderAll();
-  toast(`Loaded ${good.length} sound${good.length > 1 ? 's' : ''} from ${M.padLabel(start)}` + (convDefault !== 'clean' ? ` (${convDefault})` : '') +
+  log(`Loaded ${good.length} sound${good.length > 1 ? 's' : ''} from ${M.padLabel(start)}` + (convDefault !== 'clean' ? ` (${convDefault})` : '') +
     (bad ? ` · ${bad} file${bad > 1 ? 's' : ''} unreadable` : '') + (long ? ` · ${long} longer than 13 s` : ''), bad > 0);
 }
 
@@ -591,8 +857,9 @@ async function importFiles(files, start) {
 // With no target, the kit goes to the first banks where it overwrites nothing.
 async function importSP12(file, targetBank) {
   let sounds;
-  try { sounds = SP12.parse(await file.arrayBuffer()); } catch (e) { toast(e.message || String(e), true); return; }
-  if (!sounds.length) { toast(`No sounds found in ${file.name}`, true); return; }
+  const hfe = /\.hfe$/i.test(file.name);
+  try { sounds = hfe ? SP12.parseHFE(await file.arrayBuffer()) : SP12.parse(await file.arrayBuffer()); } catch (e) { log(e.message || String(e), true); return; }
+  if (!sounds.length) { log(`No sounds found in ${file.name}`, true); return; }
   const banks = sounds.map(s => s.slot >> 3), lo = Math.min(...banks), hi = Math.max(...banks), span = hi - lo + 1;
   const slotsAt = t => sounds.map(s => s.slot + (t - lo) * 8);
   if (targetBank == null) {
@@ -601,22 +868,24 @@ async function importSP12(file, targetBank) {
     if (targetBank < 0) targetBank = Math.min(sel >> 3, 8 - span);
   }
   if (targetBank + span > 8) {
-    toast(`${file.name} fills ${span} banks, so it doesn't fit from bank ${BANKS[targetBank]} — use bank ${BANKS[8 - span]} or earlier`, true); return;
+    log(`${file.name} fills ${span} banks, so it doesn't fit from bank ${BANKS[targetBank]} — use bank ${BANKS[8 - span]} or earlier`, true); return;
   }
   const slots = slotsAt(targetBank), busy = slots.filter(loaded).map(M.padLabel);
   if (busy.length && !(await ask(`Putting ${file.name} in ${bankRange(targetBank, targetBank + span - 1)} replaces ${busy.length} pad${busy.length > 1 ? 's' : ''} that already have sounds (${busy.slice(0, 8).join(', ')}${busy.length > 8 ? '…' : ''}). Continue?`, 'Replace'))) return;
   snapshot();
   // Pads still named after their SP-1200 pad ("A1") get the kit's name in front, so combined kits stay recognisable.
-  const kit = file.name.replace(/\.sp12$/i, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4);
+  const kit = file.name.replace(/\.(sp12|hfe)$/i, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4);
   sounds.forEach((s, k) => {
     const orig = 'ABCD'[s.slot >> 3] + ((s.slot & 7) + 1);
     const name = !s.name || s.name === orig ? (kit + orig).slice(0, 6) : s.name;
     placeSound(slots[k], s.pcm, name, 'clean', file.name);     // already 12-bit; no extra conversion
     M.setChannel(project, slots[k], s.channel);                // keep the SP-1200 output assignment
+    // Tuning and decay mode, as the sampler sets them when it converts an SP-1200 floppy itself.
+    M.setClassicPitch(project.sounds[slots[k]], s.pitch); M.setDecayMode(project.sounds[slots[k]], s.decay);
   });
-  if ($('fname').value === 'project') $('fname').value = file.name.replace(/\.sp12$/i, '').slice(0, 30);
+  if ($('fname').value === 'project') $('fname').value = file.name.replace(/\.(sp12|hfe)$/i, '').slice(0, 30);
   select(slots[0]); renderAll();
-  toast(`${sounds.length} sounds from ${file.name} → ${bankRange(targetBank, targetBank + span - 1)}, with their SP-1200 outputs`);
+  log(`${sounds.length} sounds from ${file.name} → ${bankRange(targetBank, targetBank + span - 1)}, with their SP-1200 outputs, tuning and decay`);
 }
 
 // ---------- pad and bank operations ----------
@@ -625,19 +894,23 @@ function setOut(i, k) {
   snapshot(); M.setChannel(project, i, k);
   renderPad(i); renderOutputs(); if (i === sel) renderSide();
 }
+function setPadSetting(i, fn) {
+  snapshot(); fn(project.sounds[i]);
+  renderPad(i); if (i === sel) renderSide();
+}
 function assignAll(fn, label) {
   snapshot(); for (let i = 0; i < 64; i++) M.setChannel(project, i, fn(i));
-  renderAll(); toast(label);
+  renderAll(); log(label);
 }
 function clearPad(i) {
   if (!loaded(i)) return;
-  snapshot(); project.sounds[i] = M.emptySound(i, M.channelOf(project.sounds[i])); extra[i] = {};
+  snapshot(); project.sounds[i] = M.emptySound(i, null, project.sounds[i]); extra[i] = {};
   renderAll();
 }
-// Put sound s (with its output) at pad i.
+// Put sound s (with its output, filters and voices) at pad i.
 function placed(s, i) {
-  if (!s.pcm.length) return M.emptySound(i, M.channelOf(s));
-  const n = M.makeSound(s.header, s.pcm); M.setIdentity(n, i); return n;
+  if (!s.pcm.length) return M.emptySound(i, null, s);
+  const n = M.makeSound(s.header, s.pcm, s.voices); M.setIdentity(n, i); return n;
 }
 function transfer(pairs, copy) {   // pairs: [from, to] — swap (or copy) each; sounds keep their outputs
   const S = project.sounds, old = S.slice(), oldX = extra.slice();
@@ -650,13 +923,13 @@ function movePad(from, to, copy) {
   if (from === to) return;
   snapshot(); transfer([[from, to]], copy);
   renderAll(); select(to);
-  toast(`${copy ? 'Copied' : 'Swapped'} ${M.padLabel(from)} ${copy ? 'to' : 'and'} ${M.padLabel(to)}`);
+  log(`${copy ? 'Copied' : 'Swapped'} ${M.padLabel(from)} ${copy ? 'to' : 'and'} ${M.padLabel(to)}`);
 }
 function moveBank(from, to, copy) {
   if (from === to) return;
   snapshot(); transfer(Array.from({ length: 8 }, (_, c) => [from * 8 + c, to * 8 + c]), copy);
   renderAll(); select(to * 8 + (sel & 7));
-  toast(`${copy ? 'Copied' : 'Swapped'} bank ${BANKS[from]} ${copy ? 'to' : 'and'} bank ${BANKS[to]}`);
+  log(`${copy ? 'Copied' : 'Swapped'} bank ${BANKS[from]} ${copy ? 'to' : 'and'} bank ${BANKS[to]}`);
 }
 function setConv(i, mode) {
   const ex = extra[i]; if (!ex || !ex.src || ex.conv === mode) return;
@@ -679,18 +952,49 @@ function stop() { if (playing) { try { playing.src.stop(); } catch (e) {} playin
 // ---------- events ----------
 $('newBtn').onclick = async () => {
   if (dirty && !(await ask('Clear all 64 pads and start a new project?', 'Start new'))) return;
-  newProject(); $('fname').value = 'project'; renderAll(); toast('New project — all pads empty, outputs at their defaults');
+  newProject(); $('fname').value = 'project'; renderAll(); log('New project — all pads empty, with the new-pad settings');
 };
 $('spBtn').onclick = () => $('spFile').click();
+$('logClear').onclick = () => { $('log').textContent = ''; };
+$('toHfeBtn').onclick = () => $('toHfeFile').click();
+$('toHfeFile').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  let r;
+  try { r = SP12.toHFE(await file.arrayBuffer()); } catch (err) { log(err.message || String(err), true); return; }
+  const name = file.name.replace(/\.sp12$/i, '') + '.hfe';
+  if (await saveFile(name, r.hfe, name)) {
+    const moved = r.moved.length ? ` Sounds in the Rossum-only memory pages ${r.moved.map(m => m[0]).join(' and ')} were moved to floppy pages ${r.moved.map(m => m[1]).join(' and ')}.` : '';
+    log(`${name}: ${r.sounds} sounds, with the kit's settings, sequences and songs. Load it in Disk mode on the sampler.${moved}`);
+  }
+};
 $('spFile').onchange = e => { if (e.target.files[0]) importSP12(e.target.files[0], null); e.target.value = ''; };
 $('saveBtn').onclick = saveProject;
+$('chokeOff').onchange = e => { settings.chokeOff = e.target.checked; storeSettings(); renderSettings(); };
+$('pullAmt').oninput = e => {
+  const v = Math.round(+e.target.value); if (!Number.isFinite(v)) return;
+  settings.pull = Math.max(0, Math.min(4095, v)); storeSettings(); renderSettings(); for (let i = 0; i < 64; i++) renderPad(i);
+};
+$('pullAmt').onblur = () => renderSettings();
+$('voicesel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setVoices(s, +b.dataset.v)); };
+$('f1sel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setF1Mode(s, +b.dataset.m)); };
+$('f2sel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setF2Mode(s, +b.dataset.m)); };
+$('defVoices').onchange = e => { settings.voices = +e.target.value; storeSettings(); };
+$('defF1').onchange = e => { settings.f1 = +e.target.value; storeSettings(); };
+$('defF2').onchange = e => { settings.f2 = +e.target.value; storeSettings(); };
+$('applyDefBtn').onclick = () => {
+  snapshot();
+  for (const s of project.sounds) { M.setVoices(s, settings.voices); M.setF1Mode(s, settings.f1); M.setF2Mode(s, settings.f2); }
+  renderAll();
+  log(`All pads: ${settings.voices} voice${settings.voices > 1 ? 's' : ''}, Filter 1 ${M.FILTER_MODES[settings.f1]}, Filter 2 ${M.FILTER_MODES[settings.f2]}`);
+};
+$('pullPad').onchange = e => { settings.pullPad = +e.target.value; storeSettings(); renderSettings(); for (let i = 0; i < 64; i++) renderPad(i); };
 $('undoBtn').onclick = undo;
 $('loadBtn').onclick = () => $('audioFile').click();
 $('audioFile').onchange = e => { importFiles(e.target.files, sel); e.target.value = ''; };
 $('playBtn').onclick = () => playing ? stop() : play(sel);
 $('clearBtn').onclick = () => clearPad(sel);
 $('wavBtn').onclick = () => { const s = project.sounds[sel]; saveFile(`${M.padLabel(sel)}_${M.nameOf(s).trimEnd()}.wav`, M.wav(s.pcm), 'WAV'); };
-$('convAll').onchange = e => { convDefault = e.target.value; toast(`New sounds will use ${convDefault}`); };
+$('convAll').onchange = e => { convDefault = e.target.value; log(`New sounds will use ${convDefault}`); };
 $('convPad').onchange = e => setConv(sel, e.target.value);
 $('outsel').onclick = e => { const b = e.target.closest('button'); if (b) setOut(sel, +b.dataset.o); };
 $('byPadBtn').onclick = () => assignAll(i => i & 7, 'Pads 1–8 → outputs 1–8 in every bank');
@@ -756,7 +1060,7 @@ $('grid').addEventListener('drop', e => {
   const to = +p.dataset.i;
   if (drag) { movePad(drag.i, to, e.altKey); drag = null; return; }
   const files = [...e.dataTransfer.files];
-  const sp = files.find(f => /\.sp12$/i.test(f.name));
+  const sp = files.find(f => /\.(sp12|hfe)$/i.test(f.name));
   if (sp) importSP12(sp, to >> 3); else if (files.length) importFiles(files, to);
 });
 $('ocols').addEventListener('dragover', e => {
@@ -767,7 +1071,7 @@ $('ocols').addEventListener('drop', e => {
   const c = e.target.closest('.ocol'); if (!c || !drag || drag.type !== 'pad') return;
   e.preventDefault(); e.stopPropagation(); clearDrop();
   const i = drag.i; drag = null; setOut(i, +c.dataset.o); select(i);
-  toast(`${M.padLabel(i)} → output ${+c.dataset.o + 1}`);
+  log(`${M.padLabel(i)} → output ${+c.dataset.o + 1}`);
 });
 $('ocols').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) select(+c.dataset.i); });
 $('ocols').addEventListener('dblclick', e => { const c = e.target.closest('.chip'); if (c) play(+c.dataset.i); });
@@ -783,13 +1087,14 @@ document.addEventListener('drop', e => {
   e.preventDefault(); clearDrop();
   if (drag) { drag = null; return; }
   const f = [...e.dataTransfer.files];
-  const sp = f.find(x => /\.sp12$/i.test(x.name));
+  const sp = f.find(x => /\.(sp12|hfe)$/i.test(x.name));
   if (sp) importSP12(sp, null); else if (f.length) importFiles(f, sel);
 });
 window.addEventListener('resize', () => renderAll());
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
 
 newProject(); buildGrid(); renderAll();
+log('Ready: 64 empty pads. Drop audio on a pad, import an SP-1200 kit, or convert a .sp12 to .hfe');
 })();
 </script>
 </body>
