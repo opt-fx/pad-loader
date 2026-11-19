@@ -5,6 +5,7 @@
 Pad Loader is a browser tool for the MKSREC 1. It does three things:
 
 - **Loads samples onto the sampler's 64 pads** and saves a fresh `.mks` project ready to copy to the card. Apart from the sounds, their outputs, voices and filter modes, and a few project settings, the project matches a brand-new one from the sampler, so tuning, loops, envelopes and the rest stay at the defaults for you to set on the hardware.
+- **Splits OP-1 drum kits onto pads**: a Teenage Engineering OP-1 drum `.aif` becomes one sound per slice.
 - **Imports SP-1200 kits onto pads**, from a Rossum `.sp12` project or an original SP-1200 floppy image (`.hfe`), with their names, outputs, tuning and decay.
 - **Converts Rossum `.sp12` projects to `.hfe` floppy images**, so the sampler can import a whole kit, sequences and songs included.
 - **Has a reference card** for the sampler's Setup codes, Special functions, Disk keys and key shortcuts, searchable and printable on one page.
@@ -27,6 +28,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 - **Audio files.** WAV, AIFF, MP3, FLAC and OGG. The tool reads AIFF itself (8- to 32-bit, and uncompressed or floating-point AIFF-C), because most browsers can't; compressed AIFF-C needs exporting as WAV or plain AIFF first. The other formats use the browser's own decoder. Audio is converted the way the sampler converts WAVs: left channel only, resampled to 26,040 Hz. Each sound is named from the first six characters of its file name; click the name to change it.
 - **Conversion.** The sampler's import modes are available: clean, 12b, 8b, 8b ul, 6b and 6b ul. Set the mode for new sounds in the toolbar, or change it per pad. The original audio is kept, so you can switch modes and listen to the difference. 12b d and gleam are not reproduced; load the WAV on the sampler for those.
+- **OP-1 drum kits.** An OP-1 drum kit is one `.aif` with the slice points for its 24 keys stored inside. Drop it on a pad, or choose it with Load audio, and each distinct slice goes on its own pad from that pad onwards, in key order. Keys the OP-1 filled with a repeat of another slice are skipped, so a 12-sound kit takes 12 pads. Silence at the end of each slice is trimmed, and sounds are named from the first four characters of the file name plus the slice number, such as `gadg01`. The kit's pitch, volume and effect settings are not carried over. OP-1 synth sampler files hold a single sound and load as one.
 - **Length.** The memory bar shows how much of the sampler's 832 seconds is used. Sounds longer than the 13 seconds the sampler records are marked.
 
 ## SP-1200 kits

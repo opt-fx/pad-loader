@@ -241,7 +241,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </div>
       <section class="logbox"><div class="sect"><span>Activity</span><button class="key sm ghost" id="logClear" title="Clear the activity list">Clear</button></div><div id="log" class="log"></div></section>
       <details class="hint"><summary>Tips</summary>
-        Drop audio onto a pad; several files fill the pads that follow. Drop an SP-1200 <b>.sp12</b> or <b>.hfe</b> on a pad to put the kit in that bank onwards.<br>
+        Drop audio onto a pad; several files fill the pads that follow. Drop an SP-1200 <b>.sp12</b> or <b>.hfe</b> on a pad to put the kit in that bank onwards. An OP-1 drum kit (<b>.aif</b>) is split into its slices, one per pad from the pad you drop it on.<br>
         Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their output, filters and voices when moved; new audio takes the pad's.<br>
         <kbd>←→↑↓</kbd> select · <kbd>1</kbd>–<kbd>8</kbd> output · <kbd>Space</kbd> play · <kbd>Del</kbd> clear · <kbd>Enter</kbd> rename
       </details>
@@ -253,7 +253,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 22">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 25">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -695,6 +695,48 @@ const AIFF = (() => {
   return { toWav };
 })();
 
+// ---- Teenage Engineering OP-1 drum kits ----
+// An OP-1 drum kit is one AIFF with an APPL chunk holding 'op-1' and JSON settings. "start" and "end" give each of the
+// 24 keys' slice, in units of 1/4058 of a sample frame. Unused keys repeat a slice, usually the last one.
+// split() returns null for anything that is not an OP-1 drum kit, else { name, keys, slices: [{ keys: [n…], wav }] },
+// one entry per distinct slice in key order, each as a WAV file for the browser to decode.
+const OP1 = (() => {
+  const UNIT = 4058;
+  const str = (u8, o) => String.fromCharCode(u8[o], u8[o + 1], u8[o + 2], u8[o + 3]);
+  function meta(buf) {
+    const u8 = new Uint8Array(buf), dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    if (u8.length < 12 || str(u8, 0) !== 'FORM' || !['AIFF', 'AIFC'].includes(str(u8, 8))) return null;
+    for (let o = 12; o + 8 <= u8.length;) {
+      const id = str(u8, o), n = dv.getUint32(o + 4);
+      if (id === 'APPL' && str(u8, o + 8) === 'op-1') {
+        try { return JSON.parse(new TextDecoder().decode(u8.subarray(o + 12, o + 8 + n)).replace(/\0+$/, '')); } catch (e) { return null; }
+      }
+      o += 8 + n + (n & 1);
+    }
+    return null;
+  }
+  function split(buf) {
+    const m = meta(buf);
+    if (!m || m.type !== 'drum' || !Array.isArray(m.start) || !Array.isArray(m.end)) return null;
+    const wav = AIFF.toWav(buf), dv = new DataView(wav.buffer);
+    const ch = dv.getUint16(22, true), bpf = dv.getUint16(32, true), frames = dv.getUint32(40, true) / bpf;
+    const seen = new Map(), slices = [];
+    m.start.forEach((s, k) => {
+      const a = Math.min(frames, Math.max(0, Math.floor(s / UNIT))), b = Math.min(frames, Math.floor(m.end[k] / UNIT) + 1);
+      if (b <= a) return;
+      const id = a + ':' + b;
+      if (seen.has(id)) { seen.get(id).keys.push(k + 1); return; }
+      const out = new Uint8Array(44 + (b - a) * bpf);
+      out.set(wav.subarray(0, 44)); new DataView(out.buffer).setUint32(40, (b - a) * bpf, true); new DataView(out.buffer).setUint32(4, 36 + (b - a) * bpf, true);
+      out.set(wav.subarray(44 + a * bpf, 44 + b * bpf), 44);
+      const slice = { keys: [k + 1], wav: out, frames: b - a, channels: ch };
+      seen.set(id, slice); slices.push(slice);
+    });
+    return { name: m.name || '', keys: m.start.length, slices };
+  }
+  return { meta, split, UNIT };
+})();
+
 
 
 </script>
@@ -1003,15 +1045,31 @@ async function saveProject() {
 }
 
 // ---------- audio import ----------
-async function decodeTo26k(file) {
+async function decodeBuf(data) {
   const ctx = new OfflineAudioContext(1, 1, RATE);      // decodes and resamples straight to 26040 Hz
-  let data = await file.arrayBuffer();
-  const wav = AIFF.toWav(data); if (wav) data = wav.buffer;     // most browsers can't decode AIFF themselves
   const ab = await ctx.decodeAudioData(data);
   const ch = ab.getChannelData(0);                      // left channel only, as the sampler does
   const pcm = new Int16Array(ch.length);
   for (let k = 0; k < ch.length; k++) { const v = Math.max(-1, Math.min(1, ch[k])); pcm[k] = v < 0 ? Math.round(v * 32768) : Math.round(v * 32767); }
   return pcm;
+}
+// Trailing silence (below about -60 dBFS) is cut from OP-1 slices, keeping 10 ms after the last sound.
+function trimTail(pcm) {
+  let n = pcm.length; while (n > 0 && Math.abs(pcm[n - 1]) < 33) n--;
+  return n >= pcm.length ? pcm : pcm.slice(0, Math.max(1, Math.min(pcm.length, n + Math.round(RATE / 100))));
+}
+// A file becomes one or more sounds: an OP-1 drum kit gives one per slice, anything else one.
+async function decodeFile(f) {
+  const buf = await f.arrayBuffer();
+  let kit = null; try { kit = OP1.split(buf); } catch (e) { kit = null; }
+  if (kit && kit.slices.length) {
+    const base = nameFromFile(f.name).slice(0, 4), out = [];
+    for (const [k, sl] of kit.slices.entries())
+      out.push({ pcm: trimTail(await decodeBuf(sl.wav.buffer)), name: base + String(k + 1).padStart(2, '0'), from: `${f.name} · OP-1 key ${sl.keys[0]}` });
+    return { kit: true, sounds: out };
+  }
+  const wav = AIFF.toWav(buf);                         // most browsers can't decode AIFF themselves
+  return { sounds: [{ pcm: await decodeBuf(wav ? wav.buffer : buf), name: nameFromFile(f.name), from: f.name }] };
 }
 const nameFromFile = fn => fn.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _\-]/g, '').slice(0, 6) || 'sample';
 function placeSound(i, pcm, name, conv, from) {
@@ -1026,23 +1084,30 @@ async function importFiles(files, start) {
   if (start + files.length > 64) { log(`Only ${64 - start} pads from ${M.padLabel(start)} onward — extra files skipped`, true); files = files.slice(0, 64 - start); }
   document.body.classList.add('busy');
   const results = [];
-  for (const f of files) { try { results.push({ f, pcm: await decodeTo26k(f) }); } catch (e) { results.push({ f, err: true, why: e && /AIFF/.test(e.message || '') ? e.message : '' }); } }
+  for (const f of files) { try { results.push({ f, ...(await decodeFile(f)) }); } catch (e) { results.push({ f, err: true, why: e && /AIFF/.test(e.message || '') ? e.message : '' }); } }
   document.body.classList.remove('busy');
   const good = results.filter(r => !r.err);
   for (const r of results) if (r.err && r.why) log(`${r.f.name}: ${r.why}`, true);
   if (!good.length) { log('Could not read ' + (files.length > 1 ? 'those files' : files[0].name) + ' as audio', true); return; }
+  const total = good.reduce((n, r) => n + r.sounds.length, 0);
   snapshot();
-  let i = start, long = 0;
-  for (const r of results) {
-    if (r.err) continue;
-    placeSound(i, r.pcm, nameFromFile(r.f.name), convDefault, r.f.name);
-    if (r.pcm.length > MAX_REC) long++;
-    i++;
+  let i = start, long = 0, placedN = 0, skipped = 0;
+  for (const r of good) {
+    const first = i;
+    for (const snd of r.sounds) {
+      if (i >= 64) { skipped++; continue; }
+      placeSound(i, snd.pcm, snd.name, convDefault, snd.from);
+      if (snd.pcm.length > MAX_REC) long++;
+      i++; placedN++;
+    }
+    const n = i - first;
+    if (r.kit && n) log(`OP-1 kit ${r.f.name}: ${n < r.sounds.length ? `${n} of ${r.sounds.length}` : n} sound${r.sounds.length > 1 ? 's' : ''} on ${M.padLabel(first)}` + (n > 1 ? `–${M.padLabel(i - 1)}` : ''));
   }
   const bad = results.length - good.length;
   select(start); renderAll();
-  log(`Loaded ${good.length} sound${good.length > 1 ? 's' : ''} from ${M.padLabel(start)}` + (convDefault !== 'clean' ? ` (${convDefault})` : '') +
-    (bad ? ` · ${bad} file${bad > 1 ? 's' : ''} unreadable` : '') + (long ? ` · ${long} longer than 13 s` : ''), bad > 0);
+  log(`Loaded ${placedN} sound${placedN > 1 ? 's' : ''} from ${M.padLabel(start)}` + (convDefault !== 'clean' ? ` (${convDefault})` : '') +
+    (bad ? ` · ${bad} file${bad > 1 ? 's' : ''} unreadable` : '') + (long ? ` · ${long} longer than 13 s` : '') +
+    (skipped ? ` · ${skipped} of ${total} didn't fit after H8` : ''), bad > 0 || skipped > 0);
 }
 
 // SP-1200 kits use banks A–D. They keep their layout, shifted so the kit's first used bank lands on the target bank.
