@@ -7,6 +7,7 @@ Pad Loader is a browser tool for the MKSREC 1. It does three things:
 - **Loads samples onto the sampler's 64 pads** and saves a fresh `.mks` project ready to copy to the card. Apart from the sounds, their outputs, voices and filter modes, and a few project settings, the project matches a brand-new one from the sampler, so tuning, loops, envelopes and the rest stay at the defaults for you to set on the hardware.
 - **Imports SP-1200 kits onto pads**, from a Rossum `.sp12` project or an original SP-1200 floppy image (`.hfe`), with their names, outputs, tuning and decay.
 - **Converts Rossum `.sp12` projects to `.hfe` floppy images**, so the sampler can import a whole kit, sequences and songs included.
+- **Has a reference card** for the sampler's Setup codes, Special functions, Disk keys and key shortcuts, searchable and printable on one page.
 
 The whole app is one HTML file and runs in the browser with no install. Nothing is uploaded anywhere: your sounds stay on your computer. Made by OPT.
 
@@ -74,6 +75,12 @@ Each pad has its own **Voices** (1–6, Setup 17) and **Filter 1** and **Filter 
 - **Undo** (Ctrl+Z) takes back the last change.
 
 Keys: arrows select a pad, 1–8 set its output, Space plays, Delete clears, Enter renames.
+
+## Reference
+
+**Reference**, at the top of the side column, swaps the pad settings for a quick guide to the sampler: every Setup code, the Special functions (Setup 23), the Disk mode keys and the main key shortcuts. Type in the search box to find a code or a word, such as `choke` or `42`, or pick a section. **Print** gives the whole guide on one page. Clicking a pad goes back to the pad settings.
+
+The guide was written from the MKSREC 1 manual for firmware 111026 (Setup 99 shows the firmware date). Later firmware may add or change functions; the manual has the full details.
 
 ## Notes
 

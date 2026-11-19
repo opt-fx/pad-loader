@@ -115,6 +115,43 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .chip i{font-style:normal;color:var(--lcddim)}
 .chip span{font-family:var(--lcdf);font-size:17px;line-height:1;color:var(--lcdtext);white-space:pre;overflow:hidden}
 .chip.sel{border-color:var(--accent)}
+.sidetabs{display:flex;gap:4px;margin:-4px 0 12px}
+.sidetabs button{flex:1;padding:5px 0;font-size:12.5px}
+.sidetabs button.on,.sidetabs button.on:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#061a2e;font-weight:600}
+.side.ref > :not(.sidetabs):not(#refPanel){display:none}
+.side:not(.ref) #refPanel{display:none}
+#refPanel .refhead{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+#refPanel .refhead b{font-size:13px} #refPanel .refhead span{flex:1;color:var(--mute);font-size:11.5px}
+#refSearch{width:100%;box-sizing:border-box;margin-bottom:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 9px;outline:0;font-size:13px}
+#refSearch:focus{border-color:var(--accent)}
+#refSecs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+#refSecs button{padding:3px 9px;font-size:12px}
+#refSecs button.on,#refSecs button.on:hover{background:var(--panel2);border-color:var(--accent2);color:var(--text)}
+#refList{max-height:calc(100vh - 230px);overflow:auto;padding-right:2px}
+.refsec h4{margin:10px 0 2px;font-size:12px;color:var(--accent2);font-weight:600}
+.refsec .how{color:var(--mute);font-size:11.5px;margin:0 0 4px;line-height:1.4}
+.refrow{display:grid;grid-template-columns:auto 1fr;column-gap:8px;padding:4px 0;border-bottom:1px solid #2a2d32;font-size:12.5px;line-height:1.35}
+.refrow code{font-family:var(--mono);color:var(--accent2);white-space:nowrap}
+.refrow b{font-weight:600} .refrow span{grid-column:2;color:var(--mute);font-size:12px}
+.refnone{color:var(--mute);font-size:12.5px;padding:8px 0}
+#refPrint{display:none}
+@media print{
+  body{background:#fff!important;color:#000}
+  body > *:not(#refPrint){display:none!important}
+  #refPrint{display:block;font:9.5px/1.28 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#000}
+  #refPrint h1{font-size:15px;margin:0 0 2px} #refPrint .sub{font-size:9px;color:#444;margin:0 0 8px}
+  #refPrint .cols{columns:2;column-gap:18px}
+  #refPrint section{margin-bottom:7px}
+  #refPrint tr,#refPrint h2,#refPrint .how{break-inside:avoid}
+  #refPrint h2{break-after:avoid}
+  #refPrint h2{font-size:11.5px;margin:0 0 1px;border-bottom:1px solid #000}
+  #refPrint .how{font-size:8.5px;color:#444;margin:1px 0 3px}
+  #refPrint table{border-collapse:collapse;width:100%}
+  #refPrint td{padding:1.5px 4px 1.5px 0;vertical-align:top;border-bottom:0.5px solid #ccc}
+  #refPrint td:first-child{font-family:Menlo,Consolas,monospace;white-space:nowrap;font-weight:700}
+  #refPrint td:nth-child(2){white-space:nowrap;font-weight:600}
+  @page{margin:12mm}
+}
 .logbox{margin-top:12px}
 details.hint{margin-top:10px} details.hint summary{cursor:pointer;color:var(--mute);font-size:12.5px} details.hint[open] summary{margin-bottom:6px}
 .logbox .sect button{font-size:11.5px;padding:2px 8px}
@@ -176,6 +213,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </div>
     <aside class="side" id="side">
+      <div class="sidetabs"><button class="key on" id="tabPad" title="Settings for the selected pad">Pad</button><button class="key" id="tabRef" title="MKSREC 1 menu codes and keys">Reference</button></div>
       <div class="sect"><span>Selected pad</span><b id="selLabel">A1</b></div>
       <div class="display"><input id="nameIn" maxlength="6" spellcheck="false" autocomplete="off"><div class="l2" id="lcd2">empty</div></div>
       <canvas class="wave" id="bigWave"></canvas>
@@ -207,9 +245,15 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
         Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their output, filters and voices when moved; new audio takes the pad's.<br>
         <kbd>←→↑↓</kbd> select · <kbd>1</kbd>–<kbd>8</kbd> output · <kbd>Space</kbd> play · <kbd>Del</kbd> clear · <kbd>Enter</kbd> rename
       </details>
+      <section id="refPanel">
+        <div class="refhead"><b>Reference</b><span></span><button class="key sm ghost" id="refPrintBtn" title="Print the whole reference on one page">Print</button></div>
+        <input id="refSearch" type="search" placeholder="Search, e.g. choke or 42" spellcheck="false" autocomplete="off">
+        <div id="refSecs"></div>
+        <div id="refList"></div>
+      </section>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 20">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 22">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -651,7 +695,84 @@ const AIFF = (() => {
   return { toWav };
 })();
 
-if (typeof module !== 'undefined') module.exports = { MKS, SP12, AIFF };
+
+
+</script>
+<script>
+// MKSREC 1 reference card: short descriptions written from the MKSREC 1 manual for firmware 111026.
+// Check against the new manual when the firmware changes, and update REF_FIRMWARE.
+const REF_FIRMWARE = '111026';
+const REFERENCE = [
+  { id: 'setup', title: 'Setup codes', how: 'Press Setup, then type the two-digit code. Enter returns to the Setup menu; Setup again leaves.', items: [
+    ['11', 'Multipitch', 'Spread one sound across the bank’s 8 pads at different pitches'],
+    ['12', 'Multilevel', 'Spread one sound across the bank’s 8 pads at different levels'],
+    ['13', 'Exit Multi', 'Return the bank to normal from Multipitch or Multilevel'],
+    ['14', 'Dynamic Buttons', 'Turn velocity-sensitive pads on or off'],
+    ['15', 'Define Mix', 'Save the current mix to slot 1–8'],
+    ['16', 'Select Mix', 'Recall a saved mix from slot 1–8'],
+    ['17', 'Channel Assign', 'Output channel, choke group and voices; pan on page 1; filter hold (H##) on outputs 1–2'],
+    ['18', 'Decay/Tune', 'Tuned or Decay playback (1 / 2), and Gate (3)'],
+    ['19', 'Loop / Truncate', 'Start, end and loop points; Enter makes a truncation permanent'],
+    ['20', 'Delete Sound', 'Remove one pad’s sound and free its memory'],
+    ['21', '1st Song Step', 'Step (1–99) the current song starts on'],
+    ['22', 'MIDI Parameters', 'How the sampler responds on each MIDI channel'],
+    ['23', 'Special', 'Utility functions: see Special'],
+    ['31', 'Filter 1', 'Cutoff, resonance, envelope and mode (Off, LP, HP, BP); the filter Ext mode cutoff acts on'],
+    ['32', 'Filter 2', 'Second filter in series: cutoff, resonance, mode and blend with Filter 1; no envelope'],
+    ['33', 'Gain Envelope', 'Attack, hold, decay, sustain and release of the level'],
+    ['37', 'Drive', '−127 to 127: below 0 attenuates, above 0 adds gain and clipping'],
+    ['41', 'Relative Pitch', 'Semitones, cents and pitch error; slide speed in Legato or Glissando'],
+    ['42', 'Trigger Delay', 'Push a sound later or Pull it earlier, about 0.15 ms a step'],
+    ['44', 'LFO', 'Repeating modulation of pitch, cutoff and level'],
+    ['45', 'Simult', 'Trigger up to two more sounds from one pad'],
+    ['46', 'Velocity / Key Mod', 'How velocity and playback pitch affect filter, envelopes, pitch and drive'],
+    ['47', 'Output Assign', 'Outputs 1–6 clean or filtered; 7–8 are always clean'],
+    ['48', 'Clock Out', 'Note division sent from the clock output'],
+    ['49', 'Preferences', 'Save global settings to the card (MKSREC1.cfg)'],
+    ['99', 'Version', 'Firmware build date (DDMMYY) and revision'],
+  ] },
+  { id: 'special', title: 'Special (Setup 23)', how: 'Press Setup, 2 3, then type the code.', items: [
+    ['12', 'Clear All Memory', 'Erase every sound, sequence and mix'],
+    ['13', 'Memory Remaining', 'Free sequence memory (%) and sound memory (seconds)'],
+    ['15', 'Clear Sound Memory', 'Erase every sound and reset all mixes; sequences stay'],
+    ['16', 'Clear Sequencer', 'Erase patterns, slider moves and songs; sounds stay'],
+    ['17', 'Copy Sound', 'Copy a sound and most of its settings to another pad'],
+    ['18', 'Swap Sounds', 'Swap two pads’ sounds and their sequences in the segment'],
+    ['19', 'Default Decay', 'How long Tuned sounds play before fading, 0–63'],
+    ['20', 'Init DK/Tune', 'Initial tuning value for a sound, 0–31'],
+    ['21', 'Name Sound', 'Rename the selected sound'],
+    ['22', 'Dynamic Alloc', 'Let output pairs 1–2, 3–4, 5–6, 7–8 share voices'],
+    ['25', 'Reverse Sound', 'Play the sound backwards'],
+    ['26', 'Flip Phase', 'Invert the sound’s polarity'],
+    ['27', 'Normalise', 'Raise the sound so its peak reaches full level'],
+    ['28', 'Stereo', 'Link output pairs 1–2, 3–4, 5–6 or 7–8 as stereo'],
+  ] },
+  { id: 'disk', title: 'Disk mode keys', how: 'Press Disk with the sequencer stopped. Disk again leaves.', items: [
+    ['0', 'Load Project', 'Load a .mks or .hfe; replaces everything in memory'],
+    ['Enter', 'Load Sound', 'On a .wav: load it into the selected pad (choose with pads 1–8)'],
+    ['1', 'Sample Conversion', 'clean, 12b, 12b d, 8b, 8b ul, 6b, 6b ul, gleam'],
+    ['2', 'Save Sound', 'Save the selected pad’s sound as a WAV'],
+    ['3', 'Reset Sample on Load', 'Yes: a loaded WAV takes settings from its .mki file or the defaults'],
+    ['6', 'Rename', 'Rename the highlighted file or folder'],
+    ['7', 'New Folder', 'Create a folder'],
+    ['8', 'Delete', 'Delete the highlighted file, or an empty folder'],
+    ['9', 'Save Project', 'Save everything as a .mks in /Songs'],
+    ['Tempo', 'Songs Folder', 'Jump between the current folder and /Songs'],
+  ] },
+  { id: 'keys', title: 'Keys and display', how: 'Shortcuts that work across modes.', items: [
+    ['Bank Select', 'Next Bank', 'A→B→C→D, or E→F→G→H'],
+    ['Bank Sel + T/D', 'Upper / Lower Banks', 'Hold Bank Select and press T/D to swap A–D and E–H'],
+    ['T/D', 'Performance Modes', 'Tune/Decay → Mix → Ext → exit; Enter returns'],
+    ['Ext + Erase', 'Global Cutoff', 'In Ext mode, Erase switches the sliders to cutoff per output (GC)'],
+    ['Tap/Rpt + 1', 'Global Mutes', 'Mute outputs 1–8; 0 clears all'],
+    ['Tap/Rpt + 2', 'Global Solos', 'Solo outputs 1–8; 0 clears all'],
+    ['Tap/Rpt + pad', 'Step Edit', 'Edit that pad’s step at the current position'],
+    ['Erase + pad', 'Erase Note', 'In the step sequencer, delete that pad’s note at the current step'],
+    ['Rec/Edit, Run', 'Record Now', 'Hold Record/Edit, then press Run/Stop to record at once'],
+    ['Tap/Rpt + slider', 'Record Slider Move', 'While recording on Setup 17, 31–33, 37, 41 or 44'],
+    ['d m s', 'Status Letters', 'On the home screen: d trigger-delay (Pull) active, m muted, s soloed'],
+  ] },
+];
 
 </script>
 <script>
@@ -674,6 +795,36 @@ const pullOn = () => settings.pull > 0;
 const fmtS = n => (n / RATE).toFixed(n / RATE < 10 ? 3 : 2) + ' s';
 const bankRange = (a, b) => a === b ? `bank ${BANKS[a]}` : `banks ${BANKS[a]}–${BANKS[b]}`;
 // Activity list: newest at the bottom; the latest line is highlighted, errors in red.
+// ---------- reference card ----------
+let refSec = 'all';
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const SEC_LABEL = { setup: 'Setup', special: 'Special', disk: 'Disk', keys: 'Keys' };
+function setSideTab(ref) {
+  $('side').classList.toggle('ref', ref);
+  $('tabPad').classList.toggle('on', !ref); $('tabRef').classList.toggle('on', ref);
+  if (ref) renderRef();
+}
+function renderRef() {
+  const q = $('refSearch').value.trim().toLowerCase();
+  $('refPanel').querySelector('.refhead span').textContent = `firmware ${REF_FIRMWARE}`;
+  $('refSecs').innerHTML = [['all', 'All'], ...REFERENCE.map(s => [s.id, SEC_LABEL[s.id] || s.title])]
+    .map(([id, t]) => `<button class="key sm ${refSec === id ? 'on' : 'ghost'}" data-s="${id}">${esc(t)}</button>`).join('');
+  let html = '';
+  for (const sec of REFERENCE) {
+    if (refSec !== 'all' && sec.id !== refSec && !q) continue;
+    const rows = sec.items.filter(([c, n, d]) => !q || `${c} ${n} ${d}`.toLowerCase().includes(q));
+    if (!rows.length) continue;
+    html += `<div class="refsec"><h4>${esc(sec.title)}</h4><p class="how">${esc(sec.how)}</p>`
+      + rows.map(([c, n, d]) => `<div class="refrow"><code>${esc(c)}</code><b>${esc(n)}</b><span>${esc(d)}</span></div>`).join('') + '</div>';
+  }
+  $('refList').innerHTML = html || '<div class="refnone">Nothing matches that. Try a code, a key name or a word like "filter".</div>';
+}
+function printRef() {
+  $('refPrint').innerHTML = `<h1>MKSREC 1 reference</h1><p class="sub">Checked against the MKSREC 1 manual for firmware ${REF_FIRMWARE}. From Pad Loader, an unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited.</p><div class="cols">`
+    + REFERENCE.map(sec => `<section><h2>${esc(sec.title)}</h2><p class="how">${esc(sec.how)}</p><table>`
+      + sec.items.map(([c, n, d]) => `<tr><td>${esc(c)}</td><td>${esc(n)}</td><td>${esc(d)}</td></tr>`).join('') + '</table></section>').join('') + '</div>';
+  window.print();
+}
 function log(msg, err) {
   const box = $('log');
   box.querySelectorAll('.new').forEach(d => d.classList.remove('new'));
@@ -812,6 +963,7 @@ function renderMeter() {
 }
 function renderAll() { for (let i = 0; i < 64; i++) renderPad(i); renderBanks(); renderSide(); renderOutputs(); renderMeter(); }
 function select(i) {
+  if ($('side').classList.contains('ref')) setSideTab(false);
   const old = sel; sel = Math.max(0, Math.min(63, i));
   document.querySelector(`.pad[data-i="${old}"]`).classList.remove('sel');
   document.querySelector(`.pad[data-i="${sel}"]`).classList.add('sel');
@@ -995,6 +1147,11 @@ $('newBtn').onclick = async () => {
   newProject(); $('fname').value = 'project'; renderAll(); log('New project — all pads empty, with the new-pad settings');
 };
 $('spBtn').onclick = () => $('spFile').click();
+$('tabPad').onclick = () => setSideTab(false);
+$('tabRef').onclick = () => setSideTab(true);
+$('refSearch').oninput = () => renderRef();
+$('refSecs').onclick = e => { const b = e.target.closest('button'); if (b) { refSec = b.dataset.s; $('refSearch').value = ''; renderRef(); } };
+$('refPrintBtn').onclick = printRef;
 $('logClear').onclick = () => { $('log').textContent = ''; };
 $('toHfeBtn').onclick = () => $('toHfeFile').click();
 $('toHfeFile').onchange = async e => {
@@ -1137,5 +1294,6 @@ newProject(); buildGrid(); renderAll();
 log('Ready: 64 empty pads. Drop audio on a pad, import an SP-1200 kit, or convert a .sp12 to .hfe');
 })();
 </script>
+<div id="refPrint"></div>
 </body>
 </html>
