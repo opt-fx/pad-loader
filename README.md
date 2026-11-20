@@ -14,7 +14,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 **Use it now: https://opt-fx.github.io/pad-loader/**
 
-**Status: version 1.0.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
+**Status: version 1.1.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
 
 ## Quick start
 
@@ -23,6 +23,15 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 3. Set each pad's output if you need to (see Outputs).
 4. Type a file name and press **Save .mks**.
 5. Copy the file into the card's `/Songs` folder and load it on the sampler in Disk mode.
+
+## Adding sounds to an existing project
+
+**Open .mks…** (or drop a `.mks` file on the page) opens a project saved by the sampler, so you can add sounds to one you've already worked on. Put the new sounds on empty pads and save. Everything else is written back exactly as the sampler saved it: segments, songs, mixes, and each existing pad's sound and settings, such as tuning, loops and envelopes.
+
+- The project keeps its own tempo and trigger delays (Setup 42), so the Tempo and Sync compensation Pull settings are not applied to it.
+- The new-pad settings apply only to New projects. Sounds added to an opened project take the settings that pad already has on the sampler, such as its output and choke group, and you can change them as usual.
+- Patterns play pads by position. Moving or swapping a sound in an opened project changes what the patterns play, so add new sounds to free pads rather than rearranging the old ones.
+- Save under a new name, or keep a backup, until you've checked the result on the sampler.
 
 ## Loading sounds
 
@@ -50,7 +59,7 @@ The sampler imports SP-1200 floppy images (`.hfe`) in full, with sequences and s
 
 ## Outputs
 
-Each pad goes to one of the sampler's eight outputs: 1–2 have the dynamic filters, 3–6 the static low-pass filters and 7–8 are clean. Set the selected pad's output with the 1–8 buttons or number keys, or drag a pad onto an output in the outputs panel. Hover over an output to see its pads. **Pad n → output n** and **Defaults** set every pad at once.
+Each pad goes to one of the sampler's eight outputs: 1–2 have the dynamic filters, 3–6 the static low-pass filters and 7–8 are clean. Set the selected pad's output with the 1–8 buttons or number keys, or drag a pad onto an output in the outputs panel. To set several pads at once, select them first (see Selecting several pads). Hover over an output to see its pads. **Pad n → output n** and **Defaults** set every pad at once.
 
 The output is set as Setup 17 sets it.
 
@@ -58,16 +67,21 @@ The output is set as Setup 17 sets it.
 
 Written into every project you save, and remembered in the browser:
 
-- **Choke groups off** (on by default). A brand-new project from the sampler puts every odd pad in choke group 7 and every even pad in group 8, so any odd pad cuts off any other odd pad. With this on, every pad is saved with no choke group (`G--` in Setup 17).
-- **New pads: Voices, Filter 1, Filter 2** (1 voice and both filters off by default, as on the sampler). What every pad of a new project starts with. **Apply to all pads** sets them on the current project.
+- **New pads: No choke groups, Voices, Filter 1, Filter 2** (no choke groups, 1 voice and both filters off by default). What every pad of a new project starts with. **Apply to all pads** sets them on the current project. With No choke groups unticked, pads start on the sampler's own default, which puts every odd pad in choke group 7 and every even pad in group 8, so any odd pad cuts off any other odd pad.
+- **Tempo** (120 BPM by default). The tempo written into every song of a new project, 40–240 BPM in steps of 0.1. The sampler plays a loaded project at its song tempo, and a tempo set in Segment mode is only temporary, so set your usual tempo here. An opened project keeps its own.
 - **Sync compensation: Pull** (14 on H8 by default, 0 for off). A Pull (Setup 42) on one spare pad makes the sampler delay all its other sounds by that amount, about 0.15 ms per unit, while its MIDI clock stays on the grid. Gear that follows the sampler's clock trails it slightly; the Pull lines the sampler up with it. 14 (about 2.1 ms) was measured with a Cirklon driving an Akai S612. Leave the Pull pad empty: a sound there plays ahead of the others, and the tool asks before saving one.
 
-## Voices and filters
+## Choke groups, voices and filters
 
-Each pad has its own **Voices** (1–6, Setup 17) and **Filter 1** and **Filter 2** modes (Off, LP, HP or BP; Setups 31 and 32), set in the selected-pad panel. A pad with a filter on or more than one voice shows it on its tile, for example `LP×3`.
+Each pad has its own **Choke group** (none or 1–8) and **Voices** (1–6), both from Setup 17, and **Filter 1** and **Filter 2** modes (Off, LP, HP or BP; Setups 31 and 32), set in the selected-pad panel. A pad with a choke group, a filter on or more than one voice shows it on its tile, for example `G1 LP ×3`.
 
-- **Voices**: how many hits of the same sound can overlap. At 1 a pad cuts off its own previous hit, as on an SP-1200. The sampler plays 16 voices in all, so raise this only where a sound needs to ring on.
+- **Choke group**: a hit on any pad in a group stops the others in that group, such as open and closed hi-hats. Pads sent to the same output do not cut each other off on the MKSREC 1, unlike an SP-1200 channel, so for a sliced break put all its slices in one group. After loading several files at once, give one of them a group and press **Group n for all pads of this load** to put the whole load in it.
+- **Voices**: how many hits of the same sound can overlap. At 1 a pad cuts off its own previous hit, but not other pads; that needs a choke group. The sampler plays 16 voices in all, so raise this only where a sound needs to ring on.
 - **Filter 1** is the filter the Ext mode cutoff sliders (per-sound and Global Cutoff) act on. With it off, those sliders do nothing for that pad. Cutoff, resonance and the envelope stay at their defaults for you to set on the sampler.
+
+## Selecting several pads
+
+Shift-click a pad to select every pad from the last one you clicked, or Ctrl-click (⌘-click on a Mac) to add or remove single pads. The side panel then shows the first pad and how many more are selected, and its output, choke group, voices and filter buttons set all of them at once; a button is lit only when every selected pad shares that value. The number keys and **Clear** act on the whole selection too, and dragging one of the selected pads onto an output moves them all.
 
 ## Arranging
 

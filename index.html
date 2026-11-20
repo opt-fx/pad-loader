@@ -54,10 +54,12 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .pad{position:relative;background:var(--lcd);border:1px solid #33301c;border-radius:6px;padding:5px 6px 4px;cursor:pointer;min-height:70px;display:flex;flex-direction:column;user-select:none;outline:none;transition:opacity .12s}
 .pad:hover{border-color:#5a4d24}
 .pad.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.pad.multi{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2) inset}
 .pad.drop{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent2) inset}
 .pad.bankhit{box-shadow:0 0 0 1px var(--accent2) inset}
 .pad .top{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;color:var(--lcddim)}
 .pad .top .dur{margin-left:auto}
+.pad .top .ob{flex:none}
 .pad .nm{font-family:var(--lcdf);font-size:21px;line-height:1;color:var(--lcdtext);letter-spacing:.04em;white-space:pre;margin-top:2px}
 .pad canvas{width:100%;height:18px;margin-top:auto;display:block}
 .pad.empty .nm{color:var(--lcddim)}
@@ -85,7 +87,7 @@ header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14p
 .seg button{padding:5px 0;font-family:var(--mono);font-size:12.5px}
 .seg button.on{background:var(--accent);border-color:var(--accent);color:#061a2e;font-weight:600}
 .seg.v{grid-template-columns:repeat(6,1fr)} .seg.f{grid-template-columns:repeat(4,1fr)}
-.pad .pm{white-space:nowrap;font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:.02em}
+.pad .pm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);font-size:10px;line-height:12px;min-height:12px;margin-top:2px;color:var(--accent2);letter-spacing:.02em}
 .pad.empty .pm{color:#3f6a96}
 .convsel{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:13px;cursor:pointer}
 .convsel:disabled{opacity:.5;cursor:default}
@@ -171,6 +173,8 @@ footer.credit .line{display:flex;align-items:center;justify-content:flex-end;gap
 footer.credit .sep{opacity:.5}
 footer.credit .ver{opacity:.6;margin-left:10px}
 footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
+.seg.c{grid-template-columns:repeat(9,1fr)}
+.chokeall{width:100%;margin-top:6px}
 .hidden{display:none!important}
 </style>
 </head>
@@ -179,6 +183,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
   <header>
     <div class="brand"><h1 title="Samples and SP-1200 kits onto pads in a fresh .mks project, and Rossum .sp12 projects to .hfe floppy images">Pad Loader</h1><span class="tagline">for MKSREC 1 · unofficial</span></div>
     <button class="key" id="newBtn" title="Start again with 64 empty pads">New</button>
+    <button class="key" id="openBtn" title="Open a project saved by the sampler to add sounds to it. Its segments, songs, mixes and every pad's settings are kept">Open .mks…</button>
     <button class="key" id="spBtn" title="Add the sounds from an SP-1200 kit, a Rossum .sp12 project or an original floppy image (.hfe), to the first free banks (or drop the file on a pad to choose the bank)">Import SP-1200…</button>
     <button class="key" id="toHfeBtn" title="Convert a Rossum SP-1200 .sp12 project into an SP-1200 floppy image (.hfe). Load it in the sampler's Disk mode to import the whole kit: sounds, settings, sequences and songs. Does not change the project here">.sp12 → .hfe…</button>
     <div class="field" title="Sample conversion for audio you load from now on (Disk mode key 1 on the sampler)"><label>Conversion</label><select id="convAll"></select></div>
@@ -201,12 +206,13 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       <section class="outs proj">
         <div class="head"><span class="legend">Project settings — written into every project you save, and remembered in this browser</span></div>
         <div class="opts">
-          <label class="chk" title="Setup 17: every pad's choke group set to G-- (none). A brand-new project from the sampler puts odd pads in choke group 7 and even pads in group 8, so any odd pad cuts off any other odd pad"><input type="checkbox" id="chokeOff"> Choke groups off</label>
           <span class="legend">New pads:</span>
+          <label class="chk" title="Choke group (Setup 17) that every pad of a new project starts with. Ticked: none (G--). Unticked: the firmware default, which puts odd pads in group 7 and even pads in group 8, so any odd pad cuts off any other odd pad. Set a pad's own group in the side panel"><input type="checkbox" id="chokeOff"> No choke groups</label>
           <div class="field" title="Voices (Setup 17) that every pad of a new project starts with. At 1 (the firmware default) a pad cuts off its own previous hit, as on an SP-1200. Up to 6 per pad; the sampler plays 16 voices in all"><label>Voices</label><select id="defVoices"></select></div>
           <div class="field" title="Filter 1 mode (Setup 31) that every pad of a new project starts with. The Ext mode cutoff sliders only act on sounds with Filter 1 on"><label>Filter 1</label><select id="defF1"></select></div>
           <div class="field" title="Filter 2 mode (Setup 32) that every pad of a new project starts with"><label>Filter 2</label><select id="defF2"></select></div>
-          <button class="key sm ghost" id="applyDefBtn" title="Set voices and both filter modes on all 64 pads to the new-pad values">Apply to all pads</button>
+          <button class="key sm ghost" id="applyDefBtn" title="Set choke groups, voices and both filter modes on all 64 pads to the new-pad values">Apply to all pads</button>
+          <div class="field" title="Tempo written into all 100 songs of a new project (40–240 BPM, in steps of 0.1). The sampler plays a loaded project at its song tempo; a tempo set in Segment mode is only temporary"><label>Tempo</label><input id="tempoIn" type="number" min="40" max="240" step="0.1"><em id="tempoNote">BPM</em></div>
           <div class="field" title="Setup 42 Trigger Delay, Pull, in units of about 0.15 ms (0 = off). Pull on one spare pad makes the sampler delay every other sound by that amount while its MIDI clock stays on the grid, so gear following that clock lines up with it"><label>Sync compensation: Pull</label><input id="pullAmt" type="number" min="0" max="4095" step="1"><em id="pullMs"></em></div>
           <div class="field" title="The spare pad that holds the Pull. Leave it empty: anything on it plays ahead of the other sounds"><label>on pad</label><select id="pullPad"></select></div>
         </div>
@@ -225,6 +231,10 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       <div class="sect"><span>Voices</span><span id="voiceNote"></span></div>
       <div class="seg v" id="voicesel"></div>
       <div class="gap"></div>
+      <div class="sect"><span>Choke group</span><span id="chokeNote"></span></div>
+      <div class="seg c" id="chokesel"></div>
+      <button class="key sm ghost chokeall" id="chokeLoadBtn"></button>
+      <div class="gap"></div>
       <div class="sect"><span>Filter 1</span><span>Ext cutoff acts on this one</span></div>
       <div class="seg f" id="f1sel"></div>
       <div class="gap"></div>
@@ -242,7 +252,8 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       <section class="logbox"><div class="sect"><span>Activity</span><button class="key sm ghost" id="logClear" title="Clear the activity list">Clear</button></div><div id="log" class="log"></div></section>
       <details class="hint"><summary>Tips</summary>
         Drop audio onto a pad; several files fill the pads that follow. Drop an SP-1200 <b>.sp12</b> or <b>.hfe</b> on a pad to put the kit in that bank onwards. An OP-1 drum kit (<b>.aif</b>) is split into its slices, one per pad from the pad you drop it on.<br>
-        Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their output, filters and voices when moved; new audio takes the pad's.<br>
+        Drag a pad onto another to swap, or a bank letter onto another bank to swap whole banks. Hold <kbd>Alt</kbd> to copy. Sounds keep their output, filters, voices and choke group when moved; new audio takes the pad's.<br>
+        <kbd>Shift</kbd>-click selects a range of pads and <kbd>Ctrl</kbd>/<kbd>⌘</kbd>-click adds or removes one; the settings above then apply to them all.<br>
         <kbd>←→↑↓</kbd> select · <kbd>1</kbd>–<kbd>8</kbd> output · <kbd>Space</kbd> play · <kbd>Del</kbd> clear · <kbd>Enter</kbd> rename
       </details>
       <section id="refPanel">
@@ -253,10 +264,11 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 25">v1.0</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 34">v1.1</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
+<input type="file" id="mksFile" accept=".mks" class="hidden">
 <input type="file" id="toHfeFile" accept=".sp12" class="hidden">
 <input type="file" id="audioFile" accept="audio/*,.wav,.aif,.aiff,.mp3,.flac,.ogg" multiple class="hidden">
 <div class="modal" id="modal"><div class="box"><p id="modalMsg"></p><div class="row"><button class="key ghost" id="modalNo">Cancel</button><button class="key" id="modalYes">OK</button></div></div></div>
@@ -280,13 +292,14 @@ const MKS = (() => {
   function setU32(u8, o, v) { u8[o] = v & 255; u8[o + 1] = v >> 8 & 255; u8[o + 2] = v >> 16 & 255; u8[o + 3] = v >>> 24; }
 
   // voices lives in the mix table, not the header, so it is carried on the sound object and written at build time.
-  function makeSound(header, pcm, voices) { return { header: new Uint8Array(header), pcm: pcm || new Int16Array(0), voices: voices || 1 }; }
+  // ch: the pad's output as the current mix has it, when read from an opened project (the sound header keeps its own copy).
+  function makeSound(header, pcm, voices, choke, ch) { return { header: new Uint8Array(header), pcm: pcm || new Int16Array(0), voices: voices || 1, choke: choke || 0, ch }; }
   const nameOf = s => ascii(s.header, 4, 10);
   const lengthOf = s => u32(s.header, 0x1C);
-  const channelOf = s => s.header[0x30];          // 0..7 = outputs 1..8
+  const channelOf = s => s.ch ?? s.header[0x30];  // 0..7 = outputs 1..8; the current mix's value when there is one
   const isEmpty = s => lengthOf(s) === 0;
   // Filter modes (Setups 31 and 32): one byte each in the sound header. 0 = off, 1 = LP, 2 = HP, 3 = BP.
-  const F1_MODE = 0x42, F2_MODE = 0x62, FILTER_MODES = ['Off', 'LP', 'HP', 'BP'], MAX_VOICES = 6;
+  const F1_MODE = 0x42, F2_MODE = 0x62, FILTER_MODES = ['Off', 'LP', 'HP', 'BP'], MAX_VOICES = 6, MAX_CHOKE = 8;
   const f1ModeOf = s => s.header[F1_MODE], f2ModeOf = s => s.header[F2_MODE];
   function setF1Mode(s, m) { s.header[F1_MODE] = m & 3; }
   function setF2Mode(s, m) { s.header[F2_MODE] = m & 3; }
@@ -295,10 +308,13 @@ const MKS = (() => {
   function setClassicPitch(s, v) { s.header[0x34] = Math.max(0, Math.min(31, v | 0)); }
   function setDecayMode(s, on) { s.header[0xE0] = on ? 1 : 0; }
   function setVoices(s, v) { s.voices = Math.max(1, Math.min(MAX_VOICES, v | 0)); }
-  // Settings that belong with a pad: output, filter modes and voices. Kept when a pad's audio is replaced or cleared.
+  // Choke group (Setup 17, G##): 0 = none (G--), 1..8 = group. Kept on the sound like voices; written to the mix by build().
+  function setChoke(s, g) { s.choke = Math.max(0, Math.min(MAX_CHOKE, g | 0)); }
+  const defaultChoke = i => defaultChannel(i) + 1;  // firmware default: each pad's group follows its default output (7 / 8)
+  // Settings that belong with a pad: output, filter modes, voices and choke group. Kept when a pad's audio is replaced or cleared.
   function copyPadSettings(dst, src) {
-    dst.header[0x30] = src.header[0x30]; dst.header[F1_MODE] = src.header[F1_MODE]; dst.header[F2_MODE] = src.header[F2_MODE];
-    dst.voices = src.voices || 1;
+    dst.header[0x30] = src.header[0x30]; dst.ch = src.ch; dst.header[F1_MODE] = src.header[F1_MODE]; dst.header[F2_MODE] = src.header[F2_MODE];
+    dst.voices = src.voices || 1; dst.choke = src.choke || 0;
   }
 
   function setName(s, name) {
@@ -315,16 +331,35 @@ const MKS = (() => {
   function emptySound(i, channel, like) {
     const s = makeSound(hex2u8(DEFAULT_HDR_HEX));
     setIdentity(s, i); setName(s, padLabel(i)); setPcm(s, new Int16Array(0));
-    if (like) copyPadSettings(s, like);
-    s.header[0x30] = channel ?? (like ? like.header[0x30] : defaultChannel(i));
+    if (like) copyPadSettings(s, like); else s.choke = defaultChoke(i);
+    if (channel != null) { s.header[0x30] = channel; s.ch = undefined; }
+    else if (!like) s.header[0x30] = defaultChannel(i);
     return s;
   }
 
-  function findMix(prefix) {                        // first mix record = the current mix
-    for (let o = 0; o + 0x454 <= prefix.length; o += 2)
-      if (u32(prefix, o) === MIX_TAG && prefix[o + 0xC4] >= 0x40) return o;
+  // The nine mix records (the current mix, then the eight Setup 15 slots) sit 0x454 bytes apart; the first is the
+  // current mix. Looking for the whole run avoids stray 0x1213 values in pattern data, whatever the mix levels are.
+  function findMix(prefix) {
+    const tagAt = o => o + 4 <= prefix.length && u32(prefix, o) === MIX_TAG;
+    for (let o = 0; o + 9 * 0x454 <= prefix.length; o += 2) {
+      let k = 0; while (k < 9 && tagAt(o + k * 0x454)) k++;
+      if (k === 9) return o;
+    }
     return -1;
   }
+
+  // Songs 00–99: 100 records of 0x2C bytes after a (1, 100) count. Each starts with tag 0x1200 and the song's tempo as
+  // BPM × 10 (1200 = 120.0 BPM). The sampler plays a loaded project at its song tempo; a tempo set in Segment mode is temporary.
+  const SONG_TAG = 0x1200, SONG_REC = 0x2C, SONGS = 100;
+  function findSongs(prefix) {
+    for (let o = 0; o + 8 + SONGS * SONG_REC <= prefix.length; o += 4) {
+      if (u32(prefix, o) !== 1 || u32(prefix, o + 4) !== SONGS) continue;
+      let k = 0; while (k < SONGS && u32(prefix, o + 8 + k * SONG_REC) === SONG_TAG) k++;
+      if (k === SONGS) return o + 8;
+    }
+    return -1;
+  }
+  const songTempo = p => p.songs >= 0 ? u32(p.prefix, p.songs + 4) / 10 : null;
 
   function parse(buf) {
     const u8 = new Uint8Array(buf);
@@ -351,8 +386,12 @@ const MKS = (() => {
       pos += HDR + n * 2;
     }
     const prefix = u8.slice(0, first), mix = findMix(prefix);
-    if (mix >= 0) sounds.forEach((s, i) => { s.voices = prefix[mix + 0x244 + i] || 1; });
-    return { prefix, sounds, trailer: u8.slice(pos), mix };
+    if (mix >= 0) sounds.forEach((s, i) => {
+      s.voices = prefix[mix + 0x244 + i] || 1;
+      s.ch = prefix[mix + 0x104 + i] & 7;
+      const g = prefix[mix + 0x144 + i]; s.choke = g === CHOKE_NONE ? 0 : g + 1;
+    });
+    return { prefix, sounds, trailer: u8.slice(pos), mix, songs: findSongs(prefix) };
   }
 
   // defaults: { voices, f1, f2 } for every pad (firmware defaults: 1 voice, both filters off).
@@ -361,15 +400,16 @@ const MKS = (() => {
     const sounds = Array.from({ length: PADS }, (_, i) => {
       const s = emptySound(i);
       if (defaults.voices) setVoices(s, defaults.voices);
+      if (defaults.chokeOff) setChoke(s, 0);
       if (defaults.f1) setF1Mode(s, defaults.f1);
       if (defaults.f2) setF2Mode(s, defaults.f2);
       return s;
     });
-    return { prefix, trailer: b64(TEMPLATE.trailer), sounds, mix: findMix(prefix) };
+    return { prefix, trailer: b64(TEMPLATE.trailer), sounds, mix: findMix(prefix), songs: findSongs(prefix) };
   }
 
   function setChannel(p, i, ch) {
-    p.sounds[i].header[0x30] = ch;
+    p.sounds[i].header[0x30] = ch; p.sounds[i].ch = ch;
     if (p.mix >= 0) { p.prefix[p.mix + 0x104 + i] = ch; p.prefix[p.mix + 0x1C4 + i] = ch; }
   }
 
@@ -382,7 +422,7 @@ const MKS = (() => {
   const triggerDelayOf = s => u32(s.header, TRIG_DELAY) | 0;
   function setTriggerDelay(s, units) { setU32(s.header, TRIG_DELAY, Math.max(-4095, Math.min(4095, units | 0)) >>> 0); }
 
-  // opts.chokeOff: every pad's choke group set to none.  opts.pullPad / opts.pull: Pull amount on one pad (0 = none),
+  // Each pad's voices and choke group go into the current mix.  opts.tempo: BPM written to all 100 songs.  opts.pullPad / opts.pull: Pull amount on one pad (0 = none),
   // which makes the sampler delay every other sound by that amount while its MIDI clock stays on the grid.
   function build(p, fileName, opts = {}) {
     // Keep the mix tables in step with the sound headers, and record the file path the way the firmware does.
@@ -390,13 +430,15 @@ const MKS = (() => {
       if (p.mix >= 0) {
         p.prefix[p.mix + 0x104 + i] = channelOf(s); p.prefix[p.mix + 0x1C4 + i] = channelOf(s);
         p.prefix[p.mix + 0x244 + i] = Math.max(1, Math.min(MAX_VOICES, s.voices | 0));
-        if ('chokeOff' in opts) {            // off: no group; on: the firmware default, one group per default output (7 / 8)
-          const g = opts.chokeOff ? CHOKE_NONE : defaultChannel(i);
-          p.prefix[p.mix + 0x144 + i] = g; p.prefix[p.mix + 0x204 + i] = g;
-        }
+        const g = s.choke ? s.choke - 1 : CHOKE_NONE;   // as read from an opened project, so any group the unit wrote is kept
+        p.prefix[p.mix + 0x144 + i] = g; p.prefix[p.mix + 0x204 + i] = g;
       }
       if ('pull' in opts) setTriggerDelay(s, i === opts.pullPad ? -opts.pull : 0);
     });
+    if (opts.tempo && p.songs >= 0) {
+      const t = Math.round(Math.max(40, Math.min(240, +opts.tempo)) * 10);
+      for (let k = 0; k < SONGS; k++) setU32(p.prefix, p.songs + k * SONG_REC + 4, t);
+    }
     if (fileName) {
       const path = ('/Songs/' + fileName).slice(0, 16);
       for (let k = 0; k < 17; k++) p.prefix[8 + k] = k < path.length ? path.charCodeAt(k) & 0x7f : 0;
@@ -487,7 +529,7 @@ const MKS = (() => {
   }
 
   return { RATE, PADS, HDR, TOTAL_FRAMES, padLabel, parse, build, newProject, setChannel, defaultChannel, convert, CONVERSIONS, wav, zip, crc32,
-           nameOf, lengthOf, channelOf, isEmpty, triggerDelayOf, setTriggerDelay, FILTER_MODES, MAX_VOICES, f1ModeOf, f2ModeOf, setF1Mode, setF2Mode, setVoices, copyPadSettings, setClassicPitch, setDecayMode, setName, setPcm, setIdentity, emptySound, makeSound };
+           songTempo, nameOf, lengthOf, channelOf, isEmpty, triggerDelayOf, setTriggerDelay, FILTER_MODES, MAX_VOICES, MAX_CHOKE, f1ModeOf, f2ModeOf, setF1Mode, setF2Mode, setVoices, setChoke, defaultChoke, copyPadSettings, setClassicPitch, setDecayMode, setName, setPcm, setIdentity, emptySound, makeSound };
 })();
 
 const SP12 = (() => {
@@ -828,10 +870,11 @@ let project, sel = 0, undoStack = [], dirty = false, convDefault = 'clean';
 let actx = null, playing = null;
 let extra = [];   // per pad: clean source audio, its conversion mode, and where it came from
 const SETTINGS_KEY = 'pad-loader.settings', OLD_SETTINGS_KEY = 'mksrec1-pad-loader.settings';   // settings saved before the rename carry over
-let settings = { chokeOff: true, voices: 1, f1: 0, f2: 0, pull: 14, pullPad: 63 };
+let settings = { chokeOff: true, voices: 1, f1: 0, f2: 0, pull: 14, pullPad: 63, tempo: 120 };
 try { const j = JSON.parse(localStorage.getItem(SETTINGS_KEY) || localStorage.getItem(OLD_SETTINGS_KEY) || 'null'); if (j) settings = { ...settings, ...j }; } catch (e) {}
 function storeSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} }
-const pullOn = () => settings.pull > 0;
+let opened = null;   // file name of a project opened from the sampler: its own trigger delays are kept, so no Pull is written
+const pullOn = () => !opened && settings.pull > 0;
 
 // ---------- helpers ----------
 const fmtS = n => (n / RATE).toFixed(n / RATE < 10 ? 3 : 2) + ' s';
@@ -882,14 +925,14 @@ function ask(msg, yes = 'OK') {
   });
 }
 function snapshot() {
-  undoStack.push({ sounds: project.sounds.map(s => ({ header: s.header.slice(), pcm: s.pcm, voices: s.voices })), extra: extra.map(e => ({ ...e })) });
+  undoStack.push({ sounds: project.sounds.map(s => ({ header: s.header.slice(), pcm: s.pcm, voices: s.voices, choke: s.choke, ch: s.ch })), extra: extra.map(e => ({ ...e })) });
   if (undoStack.length > 60) undoStack.shift();
   $('undoBtn').disabled = false; dirty = true;
 }
 function undo() {
   if (!undoStack.length) return;
   const u = undoStack.pop();
-  project.sounds = u.sounds.map(s => M.makeSound(s.header, s.pcm, s.voices)); extra = u.extra;
+  project.sounds = u.sounds.map(s => M.makeSound(s.header, s.pcm, s.voices, s.choke, s.ch)); extra = u.extra;
   $('undoBtn').disabled = !undoStack.length; renderAll(); log('Undone');
 }
 function audio() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx; }
@@ -919,7 +962,7 @@ function buildGrid() {
     for (let c = 0; c < 8; c++) {
       const i = r * 8 + c, el = document.createElement('div');
       el.className = 'pad'; el.dataset.i = i; el.draggable = true;
-      el.innerHTML = `<div class="top"><span>${M.padLabel(i)}</span><span class="dur"></span><span class="pm"></span><span class="ob"></span></div><div class="nm"></div><canvas></canvas><span class="warn hidden" title="Longer than 13 s">▲</span>`;
+      el.innerHTML = `<div class="top"><span>${M.padLabel(i)}</span><span class="dur"></span><span class="ob"></span></div><div class="nm"></div><div class="pm"></div><canvas></canvas><span class="warn hidden" title="Longer than 13 s">▲</span>`;
       grid.appendChild(el);
     }
   }
@@ -931,6 +974,8 @@ function buildGrid() {
   $('convAll').innerHTML = Object.entries(M.CONVERSIONS).map(([k, v]) => `<option value="${k}" title="${v.desc}">${v.label}</option>`).join('');
   const FM = M.FILTER_MODES, FT = ['Filter off', 'Low-pass', 'High-pass', 'Band-pass'];
   $('voicesel').innerHTML = Array.from({ length: M.MAX_VOICES }, (_, k) => `<button class="key" data-v="${k + 1}" title="${k + 1} voice${k ? 's' : ''}${k ? '' : ': a new hit cuts off the last one'}">${k + 1}</button>`).join('');
+  $('chokesel').innerHTML = `<button class="key" data-g="0" title="No choke group (G--)">–</button>` +
+    Array.from({ length: M.MAX_CHOKE }, (_, k) => `<button class="key" data-g="${k + 1}" title="Choke group ${k + 1}: a hit on any pad in this group stops the others">${k + 1}</button>`).join('');
   for (const id of ['f1sel', 'f2sel']) $(id).innerHTML = FM.map((m, k) => `<button class="key" data-m="${k}" title="${FT[k]}">${m}</button>`).join('');
   $('defVoices').innerHTML = Array.from({ length: M.MAX_VOICES }, (_, k) => `<option value="${k + 1}">${k + 1}</option>`).join('');
   for (const id of ['defF1', 'defF2']) $(id).innerHTML = FM.map((m, k) => `<option value="${k}">${m}</option>`).join('');
@@ -940,12 +985,12 @@ function buildGrid() {
 }
 function renderPad(i) {
   const el = document.querySelector(`.pad[data-i="${i}"]`), s = project.sounds[i], n = s.pcm.length, ch = M.channelOf(s);
-  el.classList.toggle('empty', !n); el.classList.toggle('sel', i === sel);
+  el.classList.toggle('empty', !n); el.classList.toggle('sel', i === sel); el.classList.toggle('multi', i !== sel && selSet.has(i));
   el.querySelector('.nm').textContent = n ? M.nameOf(s) : '------';
   el.querySelector('.dur').textContent = n ? (n / RATE).toFixed(2) : '';
   const f1 = M.f1ModeOf(s), f2 = M.f2ModeOf(s), pm = el.querySelector('.pm');
-  pm.textContent = [f1 ? M.FILTER_MODES[f1] : '', f2 ? '²' + M.FILTER_MODES[f2] : '', s.voices > 1 ? '×' + s.voices : ''].filter(Boolean).join('');
-  pm.title = `Filter 1 ${M.FILTER_MODES[f1]} · Filter 2 ${M.FILTER_MODES[f2]} · ${s.voices} voice${s.voices > 1 ? 's' : ''}`;
+  pm.textContent = [s.choke ? 'G' + s.choke : '', f1 ? M.FILTER_MODES[f1] : '', f2 ? '²' + M.FILTER_MODES[f2] : '', s.voices > 1 ? '×' + s.voices : ''].filter(Boolean).join(' ');
+  pm.title = `Choke group ${s.choke || 'none'} · Filter 1 ${M.FILTER_MODES[f1]} · Filter 2 ${M.FILTER_MODES[f2]} · ${s.voices} voice${s.voices > 1 ? 's' : ''}`;
   const ob = el.querySelector('.ob'); ob.textContent = ch + 1; ob.title = `Output ${ch + 1}: ${OUT_NOTES[ch]}`;
   el.querySelector('.warn').classList.toggle('hidden', n <= MAX_REC);
   const pp = pullOn() && i === settings.pullPad; el.classList.toggle('pull', pp);
@@ -956,8 +1001,12 @@ function renderSettings() {
   $('chokeOff').checked = settings.chokeOff;
   $('defVoices').value = settings.voices; $('defF1').value = settings.f1; $('defF2').value = settings.f2;
   if (document.activeElement !== $('pullAmt')) $('pullAmt').value = settings.pull;
-  $('pullPad').value = settings.pullPad; $('pullPad').disabled = !pullOn();
-  $('pullMs').textContent = pullOn() ? `≈ ${(settings.pull * 0.15).toFixed(1)} ms` : 'off';
+  const ot = opened && M.songTempo(project);
+  if (document.activeElement !== $('tempoIn')) $('tempoIn').value = ot || settings.tempo;
+  $('tempoIn').disabled = !!opened;
+  $('tempoNote').textContent = opened ? `BPM, kept from ${opened}` : 'BPM';
+  $('pullPad').value = settings.pullPad; $('pullPad').disabled = !pullOn(); $('pullAmt').disabled = !!opened;
+  $('pullMs').textContent = opened ? `not applied: ${opened} keeps its own trigger delays` : pullOn() ? `≈ ${(settings.pull * 0.15).toFixed(1)} ms` : 'off';
 }
 function renderBanks() {
   for (let b = 0; b < 8; b++) {
@@ -970,13 +1019,17 @@ function renderOutputs() {
     const col = document.querySelector(`.ocol[data-o="${k}"]`), list = col.querySelector('.list');
     const pads = [], empties = [];
     project.sounds.forEach((s, i) => { if (M.channelOf(s) === k) (s.pcm.length ? pads : empties).push(i); });
-    list.innerHTML = pads.map(i => `<div class="chip${i === sel ? ' sel' : ''}" draggable="true" data-i="${i}" title="${M.padLabel(i)} — drag to another output"><i>${M.padLabel(i)}</i><span>${M.nameOf(project.sounds[i]).trimEnd()}</span></div>`).join('');
+    list.innerHTML = pads.map(i => `<div class="chip${selSet.has(i) ? ' sel' : ''}" draggable="true" data-i="${i}" title="${M.padLabel(i)} — drag to another output"><i>${M.padLabel(i)}</i><span>${M.nameOf(project.sounds[i]).trimEnd()}</span></div>`).join('');
     col.querySelector('.cnt').textContent = `${pads.length} sound${pads.length === 1 ? '' : 's'}` + (empties.length ? ` · ${empties.length} empty` : '');
   }
 }
 function renderSide() {
   const s = project.sounds[sel], n = s.pcm.length, ch = M.channelOf(s), ex = extra[sel];
-  $('selLabel').textContent = M.padLabel(sel);
+  const many = selSet.size > 1, T = targets();
+  $('selLabel').textContent = many ? `${M.padLabel(sel)} + ${selSet.size - 1} more` : M.padLabel(sel);
+  $('selLabel').title = many ? `Settings below apply to all ${selSet.size} selected pads: ${T.map(M.padLabel).join(', ')}` : '';
+  // A setting's button is lit when every selected pad shares that value.
+  const same = f => { const v = f(project.sounds[T[0]]); return T.every(i => f(project.sounds[i]) === v) ? v : null; };
   const ni = $('nameIn'); ni.disabled = !n; if (document.activeElement !== ni) ni.value = n ? M.nameOf(s).trimEnd() : '';
   ni.placeholder = n ? '' : '------';
   $('lcd2').textContent = n ? `${M.padLabel(sel)}  ${fmtS(n)}` : `${M.padLabel(sel)}  empty`;
@@ -987,15 +1040,27 @@ function renderSide() {
       + (ex && ex.from ? `<span>From</span><b>${ex.from}</b>` : '')
       + (n > MAX_REC ? `<span style="color:var(--accent2)">Note</span><b style="color:var(--accent2)">Longer than the 13 s the sampler records; untested</b>` : '')
     : `<span>Pad</span><b>empty — drop audio here or Load audio…</b>`;
-  document.querySelectorAll('#outsel button').forEach(b => b.classList.toggle('on', +b.dataset.o === ch));
-  document.querySelectorAll('#voicesel button').forEach(b => b.classList.toggle('on', +b.dataset.v === s.voices));
-  document.querySelectorAll('#f1sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === M.f1ModeOf(s)));
-  document.querySelectorAll('#f2sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === M.f2ModeOf(s)));
+  const chS = same(M.channelOf), vS = same(x => x.voices), gS = same(x => x.choke), f1S = same(M.f1ModeOf), f2S = same(M.f2ModeOf);
+  document.querySelectorAll('#outsel button').forEach(b => b.classList.toggle('on', +b.dataset.o === chS));
+  document.querySelectorAll('#voicesel button').forEach(b => b.classList.toggle('on', +b.dataset.v === vS));
+  document.querySelectorAll('#f1sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === f1S));
+  document.querySelectorAll('#f2sel button').forEach(b => b.classList.toggle('on', +b.dataset.m === f2S));
   $('voiceNote').textContent = s.voices === 1 ? 'new hit cuts the last' : `${s.voices} can overlap`;
-  $('outNote').textContent = `${ch + 1} · ${OUT_NOTES[ch]}`;
+  document.querySelectorAll('#chokesel button').forEach(b => b.classList.toggle('on', +b.dataset.g === gS));
+  const inGroup = s.choke ? project.sounds.filter(x => x.choke === s.choke && x.pcm.length).length : 0;
+  $('chokeNote').textContent = !s.choke ? 'none' : inGroup > 1 ? `cuts the other ${inGroup - 1} loaded pad${inGroup > 2 ? 's' : ''} in group ${s.choke}` : `group ${s.choke}`;
+  const batch = ex && ex.batch ? loadOf(ex.batch) : [];
+  const cb = $('chokeLoadBtn');
+  cb.classList.toggle('hidden', many || batch.length < 2 || !s.choke);
+  cb.textContent = `Group ${s.choke} for all ${batch.length} pads of this load`;
+  cb.title = `Put every pad that came in with this one (${batch.map(M.padLabel).join(', ')}) in choke group ${s.choke}, so each hit cuts off the last, like a break on one SP-1200 channel`;
+  $('outNote').textContent = chS === null ? `mixed · ${selSet.size} pads` : many ? `${chS + 1} · all ${selSet.size} pads` : `${ch + 1} · ${OUT_NOTES[ch]}`;
+  if (many) { if (vS === null) $('voiceNote').textContent = 'mixed'; if (gS === null) $('chokeNote').textContent = 'mixed'; }
   const cp = $('convPad'); cp.disabled = !(n && ex && ex.src); cp.value = ex && ex.conv || 'clean';
   $('convNote').textContent = !n ? '' : ex && ex.src ? '' : 'source not kept';
-  for (const id of ['playBtn', 'wavBtn', 'clearBtn']) $(id).disabled = !n;
+  for (const id of ['playBtn', 'wavBtn']) $(id).disabled = !n;
+  const nLoaded = T.filter(loaded).length;
+  $('clearBtn').disabled = !nLoaded; $('clearBtn').textContent = nLoaded > 1 ? `Clear ${nLoaded} pads` : 'Clear pad';
 }
 function renderMeter() {
   const used = project.sounds.reduce((a, s) => a + s.pcm.length, 0), full = project.sounds.filter(s => s.pcm.length).length;
@@ -1004,19 +1069,48 @@ function renderMeter() {
   $('memtxt').innerHTML = `<b>${(used / RATE).toFixed(1)} s</b> of 832 s · ${full}/64 pads`;
 }
 function renderAll() { for (let i = 0; i < 64; i++) renderPad(i); renderBanks(); renderSide(); renderOutputs(); renderMeter(); }
-function select(i) {
+// Selection: sel is the pad shown in the side panel; selSet holds every selected pad (sel included).
+// Shift-click selects a range from the anchor, Ctrl/Cmd-click adds or removes one pad.
+let selSet = new Set([0]), anchor = 0;
+const targets = () => [...selSet].sort((a, b) => a - b);
+function select(i, mode) {
   if ($('side').classList.contains('ref')) setSideTab(false);
-  const old = sel; sel = Math.max(0, Math.min(63, i));
-  document.querySelector(`.pad[data-i="${old}"]`).classList.remove('sel');
-  document.querySelector(`.pad[data-i="${sel}"]`).classList.add('sel');
-  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', +c.dataset.i === sel));
+  i = Math.max(0, Math.min(63, i));
+  if (mode === 'range') {
+    selSet = new Set(); for (let k = Math.min(anchor, i); k <= Math.max(anchor, i); k++) selSet.add(k);
+    sel = i;
+  } else if (mode === 'toggle') {
+    if (selSet.has(i) && selSet.size > 1) { selSet.delete(i); if (sel === i) sel = targets()[0]; }
+    else { selSet.add(i); sel = i; }
+    anchor = i;
+  } else { selSet = new Set([i]); sel = anchor = i; }
+  document.querySelectorAll('.pad').forEach(p => { const k = +p.dataset.i; p.classList.toggle('sel', k === sel); p.classList.toggle('multi', k !== sel && selSet.has(k)); });
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', selSet.has(+c.dataset.i)));
   renderSide();
 }
 
 // ---------- project ----------
 function newProject() {
-  project = M.newProject({ voices: settings.voices, f1: settings.f1, f2: settings.f2 }); extra = Array.from({ length: 64 }, () => ({}));
-  undoStack = []; dirty = false; sel = 0; $('undoBtn').disabled = true;
+  project = M.newProject({ voices: settings.voices, f1: settings.f1, f2: settings.f2, chokeOff: settings.chokeOff }); extra = Array.from({ length: 64 }, () => ({}));
+  undoStack = []; dirty = false; sel = 0; selSet = new Set([0]); anchor = 0; opened = null; $('undoBtn').disabled = true;
+}
+// Open a project saved by the sampler. Everything but the pads you change is written back unchanged:
+// segments, songs, mixes, and each existing pad's sound settings (tuning, loops, envelopes...).
+async function openProject(file) {
+  let p;
+  try { p = M.parse(await file.arrayBuffer()); } catch (e) { log(`${file.name}: ${e.message || e}`, true); return; }
+  if (dirty && !(await ask(`Open ${file.name}? The changes to the current project will be lost.`, 'Open'))) return;
+  project = p; extra = Array.from({ length: 64 }, () => ({}));
+  undoStack = []; dirty = false; $('undoBtn').disabled = true; opened = file.name; movedNote = false;
+  $('fname').value = file.name.replace(/\.mks$/i, '');
+  sel = 0; selSet = new Set([0]); anchor = 0;
+  renderAll(); renderSettings(); select(0);
+  const n = project.sounds.filter(s => s.pcm.length).length;
+  log(`Opened ${file.name}: ${n} sound${n === 1 ? '' : 's'}. Its segments, songs, mixes and pad settings are kept; add sounds to the empty pads and save.`);
+}
+let movedNote = false;
+function noteMoved() {   // patterns trigger pads by position, so moving sounds in an opened project changes what they play
+  if (opened && !movedNote) { movedNote = true; log(`Note: the patterns in ${opened} play pads by position, so a moved sound is now played where its new pad is used.`); }
 }
 async function saveFile(name, u8, label) {
   // Inside claude.ai a page may only offer certain file types, so the file goes inside a .zip there.
@@ -1040,7 +1134,7 @@ async function saveProject() {
   if (used > M.TOTAL_FRAMES && !(await ask(`The sounds total ${(used / RATE).toFixed(1)} s, more than the sampler's 832 s of sound memory, so the project may not load. Save anyway?`, 'Save anyway'))) return;
   if (pullOn() && loaded(settings.pullPad) && !(await ask(`${M.padLabel(settings.pullPad)} holds the sync-compensation Pull, so its sound will play about ${(settings.pull * 0.15).toFixed(1)} ms ahead of the others. Save anyway?`, 'Save anyway'))) return;
   const name = ($('fname').value.trim() || 'project').replace(/[\\/:*?"<>|]/g, '_') + '.mks';
-  const opts = { chokeOff: settings.chokeOff, pull: settings.pull, pullPad: settings.pullPad };
+  const opts = opened ? {} : { pull: settings.pull, pullPad: settings.pullPad, tempo: settings.tempo };   // an opened project keeps its trigger delays and tempo
   if (await saveFile(name, M.build(project, name, opts), name)) dirty = false;
 }
 
@@ -1072,10 +1166,12 @@ async function decodeFile(f) {
   return { sounds: [{ pcm: await decodeBuf(wav ? wav.buffer : buf), name: nameFromFile(f.name), from: f.name }] };
 }
 const nameFromFile = fn => fn.replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9 _\-]/g, '').slice(0, 6) || 'sample';
+let loadBatch = 0;   // each import gets a number, so the pads of one load (such as a break's slices) can be grouped
+const loadOf = b => extra.map((e, i) => e && e.batch === b && loaded(i) ? i : -1).filter(i => i >= 0);
 function placeSound(i, pcm, name, conv, from) {
-  const s = M.emptySound(i, null, project.sounds[i]);   // default settings; the pad keeps its output, filters and voices
+  const s = M.emptySound(i, null, project.sounds[i]);   // default settings; the pad keeps its output, filters, voices and choke group
   M.setPcm(s, M.convert(pcm, conv)); M.setName(s, name);
-  project.sounds[i] = s; extra[i] = { src: pcm, conv, from };
+  project.sounds[i] = s; extra[i] = { src: pcm, conv, from, batch: loadBatch };
 }
 async function importFiles(files, start) {
   files = [...files].filter(f => !/\.(mks|sp12|hfe)$/i.test(f.name));
@@ -1090,7 +1186,7 @@ async function importFiles(files, start) {
   for (const r of results) if (r.err && r.why) log(`${r.f.name}: ${r.why}`, true);
   if (!good.length) { log('Could not read ' + (files.length > 1 ? 'those files' : files[0].name) + ' as audio', true); return; }
   const total = good.reduce((n, r) => n + r.sounds.length, 0);
-  snapshot();
+  snapshot(); loadBatch++;
   let i = start, long = 0, placedN = 0, skipped = 0;
   for (const r of good) {
     const first = i;
@@ -1129,7 +1225,7 @@ async function importSP12(file, targetBank) {
   }
   const slots = slotsAt(targetBank), busy = slots.filter(loaded).map(M.padLabel);
   if (busy.length && !(await ask(`Putting ${file.name} in ${bankRange(targetBank, targetBank + span - 1)} replaces ${busy.length} pad${busy.length > 1 ? 's' : ''} that already have sounds (${busy.slice(0, 8).join(', ')}${busy.length > 8 ? '…' : ''}). Continue?`, 'Replace'))) return;
-  snapshot();
+  snapshot(); loadBatch++;
   // Pads still named after their SP-1200 pad ("A1") get the kit's name in front, so combined kits stay recognisable.
   const kit = file.name.replace(/\.(sp12|hfe)$/i, '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4);
   sounds.forEach((s, k) => {
@@ -1155,6 +1251,17 @@ function setPadSetting(i, fn) {
   snapshot(); fn(project.sounds[i]);
   renderPad(i); if (i === sel) renderSide();
 }
+// Side-panel settings and number keys act on every selected pad.
+function setSelSetting(fn) {
+  snapshot(); for (const i of targets()) { fn(project.sounds[i]); renderPad(i); }
+  renderSide(); renderOutputs();
+}
+function setSelOut(k, pads = targets()) {
+  if (pads.every(i => M.channelOf(project.sounds[i]) === k)) return;
+  snapshot(); for (const i of pads) { M.setChannel(project, i, k); renderPad(i); }
+  renderOutputs(); renderSide();
+  if (pads.length > 1) log(`${pads.length} pads → output ${k + 1}`);
+}
 function assignAll(fn, label) {
   snapshot(); for (let i = 0; i < 64; i++) M.setChannel(project, i, fn(i));
   renderAll(); log(label);
@@ -1164,10 +1271,15 @@ function clearPad(i) {
   snapshot(); project.sounds[i] = M.emptySound(i, null, project.sounds[i]); extra[i] = {};
   renderAll();
 }
-// Put sound s (with its output, filters and voices) at pad i.
+function clearSel() {
+  const pads = targets().filter(loaded); if (!pads.length) return;
+  snapshot(); for (const i of pads) { project.sounds[i] = M.emptySound(i, null, project.sounds[i]); extra[i] = {}; }
+  renderAll(); if (pads.length > 1) log(`Cleared ${pads.length} pads`);
+}
+// Put sound s (with its output, filters, voices and choke group) at pad i.
 function placed(s, i) {
   if (!s.pcm.length) return M.emptySound(i, null, s);
-  const n = M.makeSound(s.header, s.pcm, s.voices); M.setIdentity(n, i); return n;
+  const n = M.makeSound(s.header, s.pcm, s.voices, s.choke, s.ch); M.setIdentity(n, i); return n;
 }
 function transfer(pairs, copy) {   // pairs: [from, to] — swap (or copy) each; sounds keep their outputs
   const S = project.sounds, old = S.slice(), oldX = extra.slice();
@@ -1178,12 +1290,14 @@ function transfer(pairs, copy) {   // pairs: [from, to] — swap (or copy) each;
 }
 function movePad(from, to, copy) {
   if (from === to) return;
+  noteMoved();
   snapshot(); transfer([[from, to]], copy);
   renderAll(); select(to);
   log(`${copy ? 'Copied' : 'Swapped'} ${M.padLabel(from)} ${copy ? 'to' : 'and'} ${M.padLabel(to)}`);
 }
 function moveBank(from, to, copy) {
   if (from === to) return;
+  noteMoved();
   snapshot(); transfer(Array.from({ length: 8 }, (_, c) => [from * 8 + c, to * 8 + c]), copy);
   renderAll(); select(to * 8 + (sel & 7));
   log(`${copy ? 'Copied' : 'Swapped'} bank ${BANKS[from]} ${copy ? 'to' : 'and'} bank ${BANKS[to]}`);
@@ -1209,8 +1323,10 @@ function stop() { if (playing) { try { playing.src.stop(); } catch (e) {} playin
 // ---------- events ----------
 $('newBtn').onclick = async () => {
   if (dirty && !(await ask('Clear all 64 pads and start a new project?', 'Start new'))) return;
-  newProject(); $('fname').value = 'project'; renderAll(); log('New project — all pads empty, with the new-pad settings');
+  newProject(); $('fname').value = 'project'; renderAll(); renderSettings(); log('New project — all pads empty, with the new-pad settings');
 };
+$('openBtn').onclick = () => $('mksFile').click();
+$('mksFile').onchange = e => { if (e.target.files[0]) openProject(e.target.files[0]); e.target.value = ''; };
 $('spBtn').onclick = () => $('spFile').click();
 $('tabPad').onclick = () => setSideTab(false);
 $('tabRef').onclick = () => setSideTab(true);
@@ -1237,28 +1353,43 @@ $('pullAmt').oninput = e => {
   settings.pull = Math.max(0, Math.min(4095, v)); storeSettings(); renderSettings(); for (let i = 0; i < 64; i++) renderPad(i);
 };
 $('pullAmt').onblur = () => renderSettings();
-$('voicesel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setVoices(s, +b.dataset.v)); };
-$('f1sel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setF1Mode(s, +b.dataset.m)); };
-$('f2sel').onclick = e => { const b = e.target.closest('button'); if (b) setPadSetting(sel, s => M.setF2Mode(s, +b.dataset.m)); };
+$('tempoIn').oninput = e => {
+  const v = Math.round(+e.target.value * 10) / 10; if (!Number.isFinite(v) || v < 40 || v > 240) return;
+  settings.tempo = v; storeSettings();
+};
+$('tempoIn').onblur = () => renderSettings();
+$('voicesel').onclick = e => { const b = e.target.closest('button'); if (b) setSelSetting(s => M.setVoices(s, +b.dataset.v)); };
+$('chokesel').onclick = e => { const b = e.target.closest('button'); if (b) setSelSetting(s => M.setChoke(s, +b.dataset.g)); };
+$('chokeLoadBtn').onclick = () => {
+  const g = project.sounds[sel].choke, ex = extra[sel], pads = ex && ex.batch ? loadOf(ex.batch) : [];
+  if (!g || pads.length < 2) return;
+  snapshot(); for (const i of pads) M.setChoke(project.sounds[i], g);
+  renderAll(); log(`Choke group ${g}: ${pads.map(M.padLabel).join(', ')} — each hit now cuts off the last`);
+};
+$('f1sel').onclick = e => { const b = e.target.closest('button'); if (b) setSelSetting(s => M.setF1Mode(s, +b.dataset.m)); };
+$('f2sel').onclick = e => { const b = e.target.closest('button'); if (b) setSelSetting(s => M.setF2Mode(s, +b.dataset.m)); };
 $('defVoices').onchange = e => { settings.voices = +e.target.value; storeSettings(); };
 $('defF1').onchange = e => { settings.f1 = +e.target.value; storeSettings(); };
 $('defF2').onchange = e => { settings.f2 = +e.target.value; storeSettings(); };
 $('applyDefBtn').onclick = () => {
   snapshot();
-  for (const s of project.sounds) { M.setVoices(s, settings.voices); M.setF1Mode(s, settings.f1); M.setF2Mode(s, settings.f2); }
+  project.sounds.forEach((s, i) => {
+    M.setVoices(s, settings.voices); M.setF1Mode(s, settings.f1); M.setF2Mode(s, settings.f2);
+    M.setChoke(s, settings.chokeOff ? 0 : M.defaultChoke(i));
+  });
   renderAll();
-  log(`All pads: ${settings.voices} voice${settings.voices > 1 ? 's' : ''}, Filter 1 ${M.FILTER_MODES[settings.f1]}, Filter 2 ${M.FILTER_MODES[settings.f2]}`);
+  log(`All pads: ${settings.chokeOff ? 'no choke groups' : 'default choke groups (7 / 8)'}, ${settings.voices} voice${settings.voices > 1 ? 's' : ''}, Filter 1 ${M.FILTER_MODES[settings.f1]}, Filter 2 ${M.FILTER_MODES[settings.f2]}`);
 };
 $('pullPad').onchange = e => { settings.pullPad = +e.target.value; storeSettings(); renderSettings(); for (let i = 0; i < 64; i++) renderPad(i); };
 $('undoBtn').onclick = undo;
 $('loadBtn').onclick = () => $('audioFile').click();
 $('audioFile').onchange = e => { importFiles(e.target.files, sel); e.target.value = ''; };
 $('playBtn').onclick = () => playing ? stop() : play(sel);
-$('clearBtn').onclick = () => clearPad(sel);
+$('clearBtn').onclick = () => clearSel();
 $('wavBtn').onclick = () => { const s = project.sounds[sel]; saveFile(`${M.padLabel(sel)}_${M.nameOf(s).trimEnd()}.wav`, M.wav(s.pcm), 'WAV'); };
 $('convAll').onchange = e => { convDefault = e.target.value; log(`New sounds will use ${convDefault}`); };
 $('convPad').onchange = e => setConv(sel, e.target.value);
-$('outsel').onclick = e => { const b = e.target.closest('button'); if (b) setOut(sel, +b.dataset.o); };
+$('outsel').onclick = e => { const b = e.target.closest('button'); if (b) setSelOut(+b.dataset.o); };
 $('byPadBtn').onclick = () => assignAll(i => i & 7, 'Pads 1–8 → outputs 1–8 in every bank');
 $('defBtn').onclick = () => assignAll(M.defaultChannel, 'Outputs back to the defaults (odd pads 7, even pads 8)');
 
@@ -1280,9 +1411,9 @@ document.addEventListener('keydown', e => {
   if (k === 'ArrowRight') select(sel + 1); else if (k === 'ArrowLeft') select(sel - 1);
   else if (k === 'ArrowDown') select(sel + 8); else if (k === 'ArrowUp') select(sel - 8);
   else if (k === ' ') playing ? stop() : play(sel);
-  else if (k === 'Delete' || k === 'Backspace') clearPad(sel);
+  else if (k === 'Delete' || k === 'Backspace') clearSel();
   else if (k === 'Enter') { if (loaded(sel)) { $('nameIn').focus(); $('nameIn').select(); } }
-  else if (/^[1-8]$/.test(k)) setOut(sel, +k - 1);
+  else if (/^[1-8]$/.test(k)) setSelOut(+k - 1);
   else return;
   e.preventDefault();
 });
@@ -1291,7 +1422,7 @@ document.addEventListener('keydown', e => {
 let drag = null;   // {type:'pad'|'bank', i}
 const clearDrop = () => document.querySelectorAll('.drop,.bankhit').forEach(x => x.classList.remove('drop', 'bankhit'));
 const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
-$('grid').addEventListener('click', e => { const p = e.target.closest('.pad'); if (p) select(+p.dataset.i); });
+$('grid').addEventListener('click', e => { const p = e.target.closest('.pad'); if (p) select(+p.dataset.i, e.shiftKey ? 'range' : (e.metaKey || e.ctrlKey) ? 'toggle' : null); });
 $('grid').addEventListener('dblclick', e => { const p = e.target.closest('.pad'); if (p) play(+p.dataset.i); });
 document.addEventListener('dragstart', e => {
   const t = e.target.closest && e.target.closest('.pad, .chip, .rowhead'); if (!t) return;
@@ -1322,8 +1453,8 @@ $('grid').addEventListener('drop', e => {
   const to = +p.dataset.i;
   if (drag) { movePad(drag.i, to, e.altKey); drag = null; return; }
   const files = [...e.dataTransfer.files];
-  const sp = files.find(f => /\.(sp12|hfe)$/i.test(f.name));
-  if (sp) importSP12(sp, to >> 3); else if (files.length) importFiles(files, to);
+  const mk = files.find(f => /\.mks$/i.test(f.name)), sp = files.find(f => /\.(sp12|hfe)$/i.test(f.name));
+  if (mk) openProject(mk); else if (sp) importSP12(sp, to >> 3); else if (files.length) importFiles(files, to);
 });
 $('ocols').addEventListener('dragover', e => {
   const c = e.target.closest('.ocol'); if (!c || !drag || drag.type !== 'pad') return;
@@ -1332,10 +1463,12 @@ $('ocols').addEventListener('dragover', e => {
 $('ocols').addEventListener('drop', e => {
   const c = e.target.closest('.ocol'); if (!c || !drag || drag.type !== 'pad') return;
   e.preventDefault(); e.stopPropagation(); clearDrop();
-  const i = drag.i; drag = null; setOut(i, +c.dataset.o); select(i);
-  log(`${M.padLabel(i)} → output ${+c.dataset.o + 1}`);
+  const i = drag.i, k = +c.dataset.o; drag = null;
+  if (selSet.has(i) && selSet.size > 1) { setSelOut(k); return; }   // dragging one of several selected pads moves them all
+  setOut(i, k); select(i);
+  log(`${M.padLabel(i)} → output ${k + 1}`);
 });
-$('ocols').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) select(+c.dataset.i); });
+$('ocols').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) select(+c.dataset.i, e.shiftKey ? 'range' : (e.metaKey || e.ctrlKey) ? 'toggle' : null); });
 $('ocols').addEventListener('dblclick', e => { const c = e.target.closest('.chip'); if (c) play(+c.dataset.i); });
 $('ocols').addEventListener('mouseover', e => {
   const c = e.target.closest('.ocol'); if (!c) return; const k = +c.dataset.o;
@@ -1349,8 +1482,8 @@ document.addEventListener('drop', e => {
   e.preventDefault(); clearDrop();
   if (drag) { drag = null; return; }
   const f = [...e.dataTransfer.files];
-  const sp = f.find(x => /\.(sp12|hfe)$/i.test(x.name));
-  if (sp) importSP12(sp, null); else if (f.length) importFiles(f, sel);
+  const mk = f.find(x => /\.mks$/i.test(x.name)), sp = f.find(x => /\.(sp12|hfe)$/i.test(x.name));
+  if (mk) openProject(mk); else if (sp) importSP12(sp, null); else if (f.length) importFiles(f, sel);
 });
 window.addEventListener('resize', () => renderAll());
 window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
