@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pad Loader · for MKSREC 1 (unofficial)</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script>/* catch Chrome's install offer as early as possible: it can arrive before the rest of the page has loaded */ try { addEventListener('beforeinstallprompt', e => { e.preventDefault(); window.earlyInstall = e; }); } catch (e) {}</script>
 <meta name="theme-color" content="#16171a">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Pad Loader">
@@ -281,7 +282,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 46">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 48">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -1508,7 +1509,7 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 newProject(); buildGrid(); renderAll();
 log('Ready: 64 empty pads. Drop audio on a pad, import an SP-1200 kit, or convert a .sp12 to .hfe');
 try { // one-line note the first time a new version opens
-  const build = '46', seen = localStorage.getItem('pad-loader-build');
+  const build = '48', seen = localStorage.getItem('pad-loader-build');
   const ver = document.querySelector('footer .ver').textContent;
   if (seen && seen !== build) log(`Updated to ${ver} (build ${build}). What's new: github.com/opt-fx/pad-loader`);
   localStorage.setItem('pad-loader-build', build);
@@ -1548,18 +1549,23 @@ try {
   const ios = /iPhone|iPad/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
   const btn = document.getElementById('installBtn'), bar = document.getElementById('installBar');
   const barBtn = document.getElementById('installBarBtn'), hint = document.getElementById('installHint');
+  const say = msg => {                         // a line in the Activity panel (the app's own log() is private to its script)
+    const box = document.getElementById('log'); if (!box) return;
+    box.querySelectorAll('.new').forEach(d => d.classList.remove('new'));
+    const d = document.createElement('div'); d.className = 'new'; d.textContent = msg; box.append(d); box.scrollTop = box.scrollHeight;
+  };
   const safariHint = ios ? 'In Safari, tap Share, then Add to Home Screen.' : 'In Safari, choose File > Add to Dock.';
   let deferred = null;
   const wanted = location.hash === '#install' && !standalone;
   const hideAll = () => { btn.classList.remove('show'); bar.classList.remove('show'); };
   const install = async () => {
     if (deferred) {
-      deferred.prompt();
+      deferred.prompt(); window.earlyInstall = null;
       const { outcome } = await deferred.userChoice;
       deferred = null;
       if (outcome === 'accepted') hideAll(); else btn.classList.remove('show');
     } else if (safari) {
-      log(safariHint);
+      say(safariHint);
       hint.textContent = safariHint;
     }
   };
@@ -1569,22 +1575,29 @@ try {
     bar.classList.remove('show');
     history.replaceState(null, '', location.pathname + location.search);
   });
-  addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferred = e;
+  const offer = e => {
+    deferred = e;
     btn.classList.add('show');
     barBtn.style.display = ''; hint.textContent = 'Its own window and Dock icon, and it works offline.';
     if (wanted) bar.classList.add('show');
-  });
-  addEventListener('appinstalled', () => { hideAll(); log('Installed. Pad Loader now opens in its own window.'); });
+  };
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); offer(e); });
+  if (window.earlyInstall) offer(window.earlyInstall);
+  addEventListener('appinstalled', () => { hideAll(); say('Installed. Pad Loader now opens in its own window.'); });
   if (!standalone && safari) {
     btn.classList.add('show');
     if (wanted) { hint.textContent = safariHint; bar.classList.add('show'); }
   }
-  if (wanted && !safari) setTimeout(() => {
+  if (wanted && !safari) setTimeout(async () => {
+    if (deferred) return;
+    let installed = false;                       // Chrome can say whether this app is already installed here
+    try { installed = !!(navigator.getInstalledRelatedApps && (await navigator.getInstalledRelatedApps()).length); } catch (e) {}
     if (deferred) return;
     hint.textContent = firefox
       ? 'Firefox can’t install apps. Open this page in Chrome, Edge or Safari to install it, or carry on here in the browser.'
-      : 'If it’s already installed, open it from your Dock or Launchpad. Otherwise use the install icon at the right of the address bar.';
+      : installed
+        ? 'It’s already installed on this computer: open Pad Loader from your Dock, Launchpad or Start menu.'
+        : 'If it’s already installed, open it from your Dock or Launchpad. Otherwise use the install icon at the right of the address bar.';
     barBtn.style.display = 'none';
     bar.classList.add('show');
   }, 2500);
