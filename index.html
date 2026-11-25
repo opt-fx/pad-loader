@@ -282,7 +282,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </aside>
   </div>
-  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 51">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
+  <footer class="credit"><p class="line"><span>Pad Loader: made by OPT</span><span class="sep">·</span><span>Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</span><span class="ver" title="Build 52">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -1509,7 +1509,7 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 newProject(); buildGrid(); renderAll();
 log('Ready: 64 empty pads. Drop audio on a pad, import an SP-1200 kit, or convert a .sp12 to .hfe');
 try { // one-line note the first time a new version opens
-  const build = '51', seen = localStorage.getItem('pad-loader-build');
+  const build = '52', seen = localStorage.getItem('pad-loader-build');
   const ver = document.querySelector('footer .ver').textContent;
   if (seen && seen !== build) log(`Updated to ${ver} (build ${build}). What's new: github.com/opt-fx/pad-loader`);
   localStorage.setItem('pad-loader-build', build);
