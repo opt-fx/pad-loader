@@ -2,7 +2,7 @@
 // Scope is this app's own folder (/pad-loader/), so it never touches the other OPT apps on the same site.
 // The page is fetched from the network first, so online users always get the latest build; the cached copy is the
 // offline fallback. Cache names start with "pad-loader-" and only those are ever deleted.
-const VERSION = '43';
+const VERSION = '44';
 const CACHE = 'pad-loader-b' + VERSION, FONTS = 'pad-loader-fonts';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
               './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/icon.svg'];
