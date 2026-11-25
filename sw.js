@@ -2,7 +2,7 @@
 // Scope is this app's own folder (/pad-loader/), so it never touches the other OPT apps on the same site.
 // The page opens from the saved copy straight away and the latest build is fetched in the background, so a new
 // release shows on the launch after it is published. Cache names start with "pad-loader-" and only those are ever deleted.
-const VERSION = '56';
+const VERSION = '57';
 const CACHE = 'pad-loader-b' + VERSION, FONTS = 'pad-loader-fonts';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
               './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/icon.svg'];
