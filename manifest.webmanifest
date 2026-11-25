@@ -1,5 +1,5 @@
 {
-  "id": "./",
+  "id": "/pad-loader/",
   "name": "Pad Loader",
   "short_name": "Pad Loader",
   "description": "Load samples onto the MKSREC 1's pads and save a .mks project. Unofficial community tool by OPT.",
