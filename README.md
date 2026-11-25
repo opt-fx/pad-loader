@@ -14,7 +14,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 **Use it now: https://opt-fx.github.io/pad-loader/**
 
-**Status: version 1.1.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
+**Status: version 1.2.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
 
 ## Quick start
 
@@ -23,6 +23,13 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 3. Set each pad's output if you need to (see Outputs).
 4. Type a file name and press **Save .mks**.
 5. Copy the file into the card's `/Songs` folder and load it on the sampler in Disk mode.
+
+
+### Install it as an app
+
+Pad Loader can be installed so it opens from the Dock or Start menu in its own window and works offline. In Chrome or Edge, click **Install app** at the top of the page, or the install icon at the right of the address bar. In Safari on a Mac (macOS Sonoma or later), choose File → Add to Dock. Firefox can't install web apps. Updates arrive automatically the next time you open it while online, and the Activity panel notes the new version once.
+
+To send someone straight to the install offer, link to [opt-fx.github.io/pad-loader/#install](https://opt-fx.github.io/pad-loader/#install).
 
 ## Adding sounds to an existing project
 
