@@ -12,7 +12,7 @@ Pad Loader is a browser tool for the MKSREC 1. It does three things:
 
 The whole app is one HTML file and runs in the browser with no install. Nothing is uploaded anywhere: your sounds stay on your computer. Made by OPT.
 
-**Use it now: https://opt-fx.github.io/pad-loader/**
+**Use it now: https://opt-fx.com/pad-loader/**
 
 **Status: version 1.2.** Saved projects, SP-1200 imports and converted floppies have all loaded correctly on an MKSREC 1. SP-1200 imports match the sampler's own conversion of the same floppies sample for sample.
 
@@ -29,7 +29,7 @@ The whole app is one HTML file and runs in the browser with no install. Nothing 
 
 Pad Loader can be installed so it opens from the Dock or Start menu in its own window and works offline. In Chrome or Edge, click **Install app** at the top of the page, or the install icon at the right of the address bar. In Safari on a Mac (macOS Sonoma or later), choose File → Add to Dock. Firefox can't install web apps. Updates arrive automatically the next time you open it while online, and the Activity panel notes the new version once.
 
-To send someone straight to the install offer, link to [opt-fx.github.io/pad-loader/#install](https://opt-fx.github.io/pad-loader/#install).
+To send someone straight to the install offer, link to [opt-fx.com/pad-loader/#install](https://opt-fx.com/pad-loader/#install).
 
 ## Adding sounds to an existing project
 
