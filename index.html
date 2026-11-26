@@ -194,6 +194,11 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
 .seg.c{grid-template-columns:repeat(9,1fr)}
 .chokeall{width:100%;margin-top:6px}
 .hidden{display:none!important}
+/* the suite's footer: the same type as Seer's (Helvetica Neue 11px, the credit line spaced .06em, warm grey) */
+footer.credit, footer.credit p, footer.credit .disc, footer.credit .line, footer.credit a { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:11px; font-weight:400; }
+footer.credit { color:#8b8578; opacity:1; letter-spacing:normal; }
+footer.credit .disc, footer.credit p { letter-spacing:normal; line-height:1.5; }
+footer.credit .line { letter-spacing:.06em; }
 </style>
 </head>
 <body>
@@ -284,7 +289,7 @@ footer.credit svg{width:18px;height:18px;flex:none;transform:translateY(-1px)}
       </section>
     </aside>
   </div>
-  <footer class="credit"><div class="frow"><p class="disc">Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</p><p class="line"><a class="kofi" href="https://ko-fi.com/optfx">Support OPT-FX on Ko-fi</a><span class="sep">·</span><span>Made by OPT</span><span class="ver" title="Build 57">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></div></footer>
+  <footer class="credit"><div class="frow"><p class="disc">Unofficial community tool, not affiliated with or endorsed by MKSREC Electronics Limited. MKSREC is a registered trade mark of MKSREC Electronics Limited.</p><p class="line"><a class="kofi" href="https://ko-fi.com/optfx">Support OPT-FX on Ko-fi</a><span class="sep">·</span><span>Made by OPT</span><span class="ver" title="Build 58">v1.2</span><svg viewBox="0 0 400 400" role="img" aria-label="OPT logo: a striped sun"><defs><mask id="sunmask2"><rect width="400" height="400" fill="#fff"/><rect y="224" width="400" height="8"/><rect y="262" width="400" height="13"/><rect y="302" width="400" height="18"/><rect y="344" width="400" height="24"/></mask></defs><circle cx="200" cy="200" r="196" fill="#FF8A1F" mask="url(#sunmask2)"/></svg></p></div></footer>
 </div>
 
 <input type="file" id="spFile" accept=".sp12,.hfe" class="hidden">
@@ -1511,7 +1516,7 @@ window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); 
 newProject(); buildGrid(); renderAll();
 log('Ready: 64 empty pads. Drop audio on a pad, import an SP-1200 kit, or convert a .sp12 to .hfe');
 try { // one-line note the first time a new version opens
-  const build = '57', seen = localStorage.getItem('pad-loader-build');
+  const build = '58', seen = localStorage.getItem('pad-loader-build');
   const ver = document.querySelector('footer .ver').textContent;
   if (seen && seen !== build) log(`Updated to ${ver} (build ${build}). What's new: github.com/opt-fx/pad-loader`);
   localStorage.setItem('pad-loader-build', build);
